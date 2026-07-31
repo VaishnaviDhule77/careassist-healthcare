@@ -1,0 +1,2312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CareCompanion — My Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --med: #1976d2;
+            --med-dk: #1565c0;
+            --med-lt: #e3f2fd;
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --txt: #111111;
+            --sub: #444444;
+            --muted: #666666;
+            --ok: #2e7d32;
+            --ok-bg: #e8f5e9;
+            --danger: #d32f2f;
+            --danger-bg: #ffebee;
+            --warn: #ed6c02;
+            --warn-bg: #fff3e0;
+            --border: #dce1e6;
+            --fs: 1;
+            --scan-border: #FFD700;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: calc(20px * var(--fs));
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        *:focus-visible {
+            outline: 3px solid var(--med);
+            outline-offset: 3px;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+        /* ====== LANGUAGE SELECTOR ====== */
+        .language-selector-container {
+            background: linear-gradient(135deg, #f0f4f8, #e8edf2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .language-selector-container label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--txt);
+            white-space: nowrap;
+        }
+
+        .lang-dropdown {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            color: var(--txt);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .lang-dropdown:focus {
+            border-color: var(--med);
+            outline: none;
+        }
+
+        /* ====== ACCESSIBILITY CONTROLS ====== */
+        .access-panel {
+            background: linear-gradient(135deg, #f0f4f8, #e8edf2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .access-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--txt);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .access-title i {
+            color: var(--med);
+            font-size: 0.9rem;
+        }
+
+        .access-modes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .mode-btn {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            background: var(--card);
+            color: var(--sub);
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--med);
+            color: var(--med);
+        }
+
+        .mode-btn.active {
+            background: var(--med);
+            border-color: var(--med);
+            color: #fff;
+        }
+
+        .mode-btn i {
+            font-size: 0.85rem;
+        }
+
+        .access-status {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 20px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            flex-shrink: 0;
+        }
+
+        .status-dot.active {
+            background: var(--ok);
+            animation: dotPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes dotPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .webcam-preview {
+            display: none;
+            width: 120px;
+            height: 90px;
+            border-radius: 10px;
+            border: 2px solid var(--border);
+            margin-top: 12px;
+            object-fit: cover;
+        }
+
+        .webcam-preview.show {
+            display: block;
+        }
+
+        /* ====== SCANNING HIGHLIGHT ====== */
+        .scanning-active {
+            border: 5px solid var(--scan-border) !important;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4) !important;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .scan-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFD700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            z-index: 300;
+            display: none;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        .scan-indicator.show {
+            display: block;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ====== ZONE 1: SOS HEADER ====== */
+        .sos-zone {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--danger);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            box-shadow: 0 4px 20px rgba(211, 47, 47, 0.35);
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .sos-zone:active {
+            background: #b71c1c;
+        }
+
+        .sos-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 20px,
+                rgba(0, 0, 0, 0.03) 20px,
+                rgba(0, 0, 0, 0.03) 40px
+            );
+            pointer-events: none;
+        }
+
+        .sos-icon-ring {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            animation: sosRingPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes sosRingPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.3); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+        }
+
+        .sos-icon-ring i {
+            color: #fff;
+            font-size: 1.4rem;
+        }
+
+        .sos-text {
+            color: #fff;
+            font-weight: 900;
+            font-size: 1.35rem;
+            line-height: 1.15;
+            letter-spacing: 0.02em;
+        }
+
+        .sos-sub {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* ====== DASHBOARD BODY ====== */
+        .dash-body {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 18px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* ====== CARD BASE ====== */
+        .card {
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            padding: 28px 24px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .card-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 18px;
+        }
+
+        /* ====== ZONE 2: NEXT MEDICATION ====== */
+        .med-card {
+            border: 2px solid var(--warn);
+            border-top: 5px solid var(--warn);
+        }
+
+        .med-card.taken {
+            border-color: var(--ok);
+            border-top-color: var(--ok);
+            background: linear-gradient(135deg, #fff 60%, var(--ok-bg));
+        }
+
+        .badge-warn {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+
+        .badge-ok {
+            background: var(--ok-bg);
+            color: var(--ok);
+        }
+
+        .med-name {
+            font-size: 1.7rem;
+            font-weight: 900;
+            color: var(--txt);
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+
+        .med-time {
+            font-size: 1.05rem;
+            color: var(--sub);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .med-time i {
+            color: var(--warn);
+            font-size: 0.95rem;
+        }
+
+        .med-instruction {
+            font-size: 0.92rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 24px;
+            line-height: 1.4;
+        }
+
+        .btn-confirm {
+            width: 100%;
+            padding: 20px 24px;
+            border: none;
+            border-radius: 16px;
+            background: var(--ok);
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: transform 0.15s, box-shadow 0.25s, background 0.3s;
+            box-shadow: 0 4px 16px rgba(46, 125, 50, 0.3);
+            min-height: 72px;
+        }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(46, 125, 50, 0.35);
+        }
+
+        .btn-confirm:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-confirm:disabled {
+            background: #a5d6a7;
+            color: #fff;
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-confirm i {
+            font-size: 1.3rem;
+        }
+
+        .med-taken-msg {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--ok);
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+
+        .med-taken-msg.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        /* ====== ZONE 3: VOICE ASSISTANT ====== */
+        .ai-card {
+            text-align: center;
+        }
+
+        .ai-title {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--txt);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .ai-title i {
+            color: var(--med);
+        }
+
+        .btn-mic {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, var(--med), var(--med-dk));
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 2.2rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 6px 24px rgba(25, 118, 210, 0.3);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+        }
+
+        .btn-mic:hover {
+            transform: scale(1.06);
+            box-shadow: 0 10px 36px rgba(25, 118, 210, 0.35);
+        }
+
+        .btn-mic:active {
+            transform: scale(0.95);
+        }
+
+        .btn-mic.listening {
+            animation: micPulse 1.2s ease-in-out infinite;
+            box-shadow: 0 0 0 10px rgba(25, 118, 210, 0.12), 0 0 50px rgba(25, 118, 210, 0.2);
+        }
+
+        @keyframes micPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        .mic-rings {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid var(--med);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .btn-mic.listening .mic-rings {
+            animation: ringOut 1.8s ease-out infinite;
+        }
+
+        .mic-rings:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+
+        .mic-rings:nth-child(3) {
+            animation-delay: 1.2s;
+        }
+
+        @keyframes ringOut {
+            0% { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.5); }
+        }
+
+        .mic-status {
+            font-size: 0.88rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 10px;
+            min-height: 24px;
+            transition: color 0.3s;
+        }
+
+        .mic-status.active {
+            color: var(--med);
+        }
+
+        .ai-response {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px 20px;
+            min-height: 70px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sub);
+            line-height: 1.55;
+            text-align: left;
+            transition: border-color 0.3s;
+        }
+
+        .ai-response.speaking {
+            border-color: var(--med);
+        }
+
+        .wave-bars {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            height: 36px;
+            margin-bottom: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .wave-bars.on {
+            opacity: 1;
+        }
+
+        .wave-bars span {
+            width: 5px;
+            border-radius: 3px;
+            background: var(--med);
+            animation: wBar 0.7s ease-in-out infinite;
+        }
+
+        .wave-bars span:nth-child(1) { height: 8px; animation-delay: 0s; }
+        .wave-bars span:nth-child(2) { height: 16px; animation-delay: 0.08s; }
+        .wave-bars span:nth-child(3) { height: 26px; animation-delay: 0.16s; }
+        .wave-bars span:nth-child(4) { height: 34px; animation-delay: 0.24s; }
+        .wave-bars span:nth-child(5) { height: 26px; animation-delay: 0.32s; }
+        .wave-bars span:nth-child(6) { height: 16px; animation-delay: 0.40s; }
+        .wave-bars span:nth-child(7) { height: 8px; animation-delay: 0.48s; }
+
+        @keyframes wBar {
+            0%, 100% { transform: scaleY(0.25); }
+            50% { transform: scaleY(1); }
+        }
+
+        /* ====== ZONE 4: ROUTINE SUMMARY ====== */
+        .routine-header {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--txt);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .routine-header i {
+            color: var(--med);
+        }
+
+        .routine-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .routine-bar-track {
+            flex: 1;
+            height: 10px;
+            background: var(--border);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .routine-bar-fill {
+            height: 100%;
+            border-radius: 5px;
+            background: linear-gradient(90deg, var(--ok), #66bb6a);
+            transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .routine-bar-fill::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: barShm 2s infinite;
+        }
+
+        @keyframes barShm {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .routine-pct {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--ok);
+            min-width: 48px;
+            text-align: right;
+        }
+
+        .time-block {
+            margin-bottom: 14px;
+        }
+
+        .time-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .time-label {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .time-label i {
+            font-size: 0.75rem;
+        }
+
+        .routine-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            background: var(--bg);
+            margin-bottom: 6px;
+            transition: background 0.2s;
+        }
+
+        .routine-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .routine-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .routine-icon.done {
+            background: var(--ok-bg);
+            color: var(--ok);
+        }
+
+        .routine-icon.pending {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+
+        .routine-icon.missed {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .routine-name {
+            flex: 1;
+            font-weight: 800;
+            font-size: 0.92rem;
+            color: var(--txt);
+        }
+
+        .routine-name.struck {
+            text-decoration: line-through;
+            opacity: 0.45;
+        }
+
+        .routine-time {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .routine-status {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 10px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .routine-status.done {
+            background: var(--ok-bg);
+            color: var(--ok);
+        }
+
+        .routine-status.pending {
+            background: var(--warn-bg);
+            color: var(--warn);
+        }
+
+        .routine-status.missed {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        /* ====== CALL CAREGIVER BUTTON ====== */
+        .call-card {
+            border: 2px solid var(--med);
+            border-top: 5px solid var(--med);
+        }
+
+        .badge-med {
+            background: var(--med-lt);
+            color: var(--med);
+        }
+
+        .btn-call {
+            width: 100%;
+            padding: 20px 24px;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--med), var(--med-dk));
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: transform 0.15s, box-shadow 0.25s;
+            box-shadow: 0 4px 16px rgba(25, 118, 210, 0.3);
+            min-height: 72px;
+        }
+
+        .btn-call:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(25, 118, 210, 0.35);
+        }
+
+        .btn-call:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-call i {
+            font-size: 1.3rem;
+        }
+
+        /* ====== FONT CONTROLS ====== */
+        .top-strip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 18px 6px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .top-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .top-brand-ic {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--med), var(--med-dk));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .top-brand-ic i {
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .top-brand-tx {
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: var(--txt);
+        }
+
+        .font-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .f-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--txt);
+            cursor: pointer;
+            font-size: 0.65rem;
+            font-weight: 900;
+            font-family: 'Nunito', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .f-btn:hover {
+            background: var(--med-lt);
+            color: var(--med);
+        }
+
+        /* ====== SOS MODAL ====== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .modal-overlay.vis {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-overlay.vis .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--danger-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
+
+        .modal-icon i {
+            font-size: 2rem;
+            color: var(--danger);
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        .modal-desc {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .modal-loc {
+            color: var(--med);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            word-break: break-all;
+            min-height: 20px;
+            font-family: monospace;
+        }
+
+        .modal-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: 14px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-cancel {
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--txt);
+        }
+
+        .modal-btn-cancel:hover {
+            background: var(--bg);
+        }
+
+        .modal-btn-danger {
+            border: none;
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .modal-btn-danger:hover {
+            background: #b71c1c;
+        }
+
+        /* ====== TOAST ====== */
+        .toast-rack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            max-width: 400px;
+        }
+
+        .tst {
+            pointer-events: auto;
+            background: var(--card);
+            border-radius: 14px;
+            padding: 16px 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            border-left: 4px solid var(--med);
+            animation: tIn 0.4s ease, tOut 0.4s ease 3.5s forwards;
+        }
+
+        .tst.ok { border-left-color: var(--ok); }
+        .tst.err { border-left-color: var(--danger); }
+        .tst.wrn { border-left-color: var(--warn); }
+
+        @keyframes tIn {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes tOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(60px); }
+        }
+
+        /* ====== FLASH ====== */
+        .flash {
+            position: fixed;
+            inset: 0;
+            z-index: 150;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .flash.on {
+            opacity: 1;
+        }
+
+        /* ====== AUDIO METER ====== */
+        .audio-meter {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .audio-meter.show {
+            display: flex;
+        }
+
+        .meter-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--ok), var(--warn), var(--danger));
+            border-radius: 4px;
+            transition: width 0.1s;
+        }
+
+        .meter-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--muted);
+            min-width: 50px;
+        }
+
+        @media (max-width: 500px) {
+            html { font-size: calc(18px * var(--fs)); }
+            .dash-body { padding: 16px 14px 32px; }
+            .card { padding: 22px 18px; }
+            .btn-mic { width: 96px; height: 96px; font-size: 1.9rem; }
+            .med-name { font-size: 1.45rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flash" id="flash" aria-hidden="true"></div>
+    <div class="toast-rack" id="toasts" aria-live="polite"></div>
+    <div class="scan-indicator" id="scanIndicator">Action Selected!</div>
+
+    <!-- SOS Modal -->
+    <div class="modal-overlay" id="sosModal" role="dialog" aria-modal="true" aria-label="Emergency SOS confirmation">
+        <div class="modal-box">
+            <div class="modal-icon"><i class="fas fa-triangle-exclamation"></i></div>
+            <h2 class="modal-title" id="modalTitle">Emergency Alert</h2>
+            <p class="modal-desc" id="modalDesc">Send your location to emergency contacts?</p>
+            <p class="modal-loc" id="sosLoc">Detecting location...</p>
+            <div class="modal-btns">
+                <button class="modal-btn modal-btn-cancel" id="sosCancel" data-i18n="cancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-danger" id="sosConfirm" data-i18n="sendAlertBtn">Send Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== ZONE 1: SOS HEADER ====== -->
+    <header class="sos-zone" id="sosZone" role="button" tabindex="0" aria-label="Emergency SOS — tap for immediate help">
+        <div class="sos-icon-ring">
+            <i class="fas fa-phone-volume"></i>
+        </div>
+        <div>
+            <div class="sos-text" id="sosBtn">🚨 EMERGENCY SOS</div>
+            <div class="sos-sub" id="sosSubText">Tap if you need immediate help</div>
+        </div>
+    </header>
+
+    <div class="top-strip">
+        <div class="top-brand">
+            <div class="top-brand-ic"><i class="fas fa-heart-pulse"></i></div>
+            <span class="top-brand-tx">CareCompanion</span>
+        </div>
+        <div class="font-btns">
+            <button class="f-btn" id="fsDn" aria-label="Smaller text">A-</button>
+            <button class="f-btn" id="fsUp" aria-label="Larger text">A+</button>
+        </div>
+    </div>
+
+    <main class="dash-body">
+
+        <!-- ====== LANGUAGE SELECTOR ====== -->
+        <div class="language-selector-container">
+            <label for="langSelect">🌐 Language / भाषा:</label>
+            <select id="langSelect" class="lang-dropdown">
+                <option value="en-US">English</option>
+                <option value="hi-IN">हिन्दी (Hindi)</option>
+                <option value="mr-IN">मराठी (Marathi)</option>
+            </select>
+        </div>
+
+        <!-- ====== ACCESSIBILITY CONTROLS ====== -->
+        <section class="access-panel" aria-label="Accessibility controls">
+            <div class="access-title">
+                <i class="fas fa-universal-access"></i>
+                <span data-i18n="accessibilityTitle">Accessibility Modes</span>
+            </div>
+            <div class="access-modes">
+                <button class="mode-btn" id="modeScan" aria-label="Enable auto-scanning mode">
+                    <i class="fas fa-arrows-rotate"></i> <span data-i18n="autoScanBtn">Auto-Scan</span>
+                </button>
+                <button class="mode-btn" id="modeSwitch" aria-label="Enable switch control mode">
+                    <i class="fas fa-keyboard"></i> <span data-i18n="switchBtn">Switch</span>
+                </button>
+                <button class="mode-btn" id="modeAudio" aria-label="Enable audio trigger mode">
+                    <i class="fas fa-volume-high"></i> <span data-i18n="audioBtn">Audio</span>
+                </button>
+                <button class="mode-btn" id="modeWebcam" aria-label="Enable webcam gesture control">
+                    <i class="fas fa-video"></i> <span data-i18n="webcamBtn">Webcam</span>
+                </button>
+            </div>
+            <div class="access-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText" data-i18n="noAccessMode">No accessibility mode active</span>
+            </div>
+            <video class="webcam-preview" id="webcamPreview" autoplay muted playsinline></video>
+            <div class="audio-meter" id="audioMeter">
+                <div class="meter-bar">
+                    <div class="meter-fill" id="meterFill"></div>
+                </div>
+                <span class="meter-label" id="meterLabel">0%</span>
+            </div>
+        </section>
+
+        <!-- ====== ZONE 2: NEXT MEDICATION ====== -->
+        <section class="card med-card" id="medCard" aria-label="Next medication">
+            <div class="card-label badge-warn" id="medBadge">
+                <i class="fas fa-clock"></i> <span data-i18n="nextUp">Next Up</span>
+            </div>
+            <h1 class="med-name" id="medName">Metformin 500mg</h1>
+            <p class="med-time" id="medTime">
+                <i class="fas fa-clock"></i>
+                <span id="medTimeText">1:00 PM (After Lunch)</span>
+            </p>
+            <p class="med-instruction" id="medInstr">Take 1 tablet with warm water after food.</p>
+
+            <button class="btn-confirm" id="takeMedBtn" aria-label="Confirm you took this medicine">
+                <i class="fas fa-check-circle"></i>
+                <span data-i18n="takeMedBtn">✓ I Took This Medicine</span>
+            </button>
+
+            <div class="med-taken-msg" id="medTakenMsg">
+                <i class="fas fa-circle-check"></i>
+                <span data-i18n="medDone">✓ Completed</span>
+            </div>
+        </section>
+
+        <!-- ====== ZONE 3: AI VOICE ASSISTANT ====== -->
+        <section class="card ai-card" id="aiCard" aria-label="Voice health assistant">
+            <h2 class="ai-title" id="voiceTitle">
+                <i class="fas fa-microphone-lines"></i>
+                <span data-i18n="voiceTitle">🎙️ Voice Health Helper</span>
+            </h2>
+
+            <button class="btn-mic" id="micBtn" aria-label="Tap to speak a health question">
+                <div class="mic-rings"></div>
+                <div class="mic-rings"></div>
+                <div class="mic-rings"></div>
+                <i class="fas fa-microphone" id="micIco"></i>
+            </button>
+
+            <div class="wave-bars" id="waveBars" aria-hidden="true">
+                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
+
+            <p class="mic-status" id="micStatus" data-i18n="voicePrompt">Tap above and ask: 'When is my next pill?'</p>
+
+            <div class="ai-response" id="aiResponse" data-i18n="voiceDefault">
+                Try saying: "When is my next pill?" or "I have a headache"
+            </div>
+        </section>
+
+        <!-- ====== CALL CAREGIVER ====== -->
+        <section class="card call-card" id="callCard" aria-label="Call caregiver">
+            <div class="card-label badge-med">
+                <i class="fas fa-phone"></i> <span data-i18n="quickContact">Quick Contact</span>
+            </div>
+            <h2 style="font-size: 1.2rem; font-weight: 900; margin-bottom: 16px; color: var(--txt);" data-i18n="callCaregiver">
+                Call Your Caregiver
+            </h2>
+            <p style="font-size: 0.92rem; color: var(--muted); font-weight: 600; margin-bottom: 20px; line-height: 1.4;" data-i18n="callCaregiverDesc">
+                Need to speak with your caregiver? Tap below to place a call.
+            </p>
+            <button class="btn-call" id="callBtn" aria-label="Call caregiver">
+                <i class="fas fa-phone"></i>
+                <span data-i18n="callCaregiverBtn">Call Caregiver</span>
+            </button>
+        </section>
+
+        <!-- ====== ZONE 4: TODAY'S ROUTINE SUMMARY ====== -->
+        <section class="card" aria-label="Today's routine summary">
+            <div class="routine-header">
+                <i class="fas fa-list-check"></i>
+                <span data-i18n="todaysRoutine">Today's Routine</span>
+            </div>
+
+            <div class="routine-progress">
+                <div class="routine-bar-track">
+                    <div class="routine-bar-fill" id="routineBar" style="width: 0%;"></div>
+                </div>
+                <div class="routine-pct" id="routinePct">0%</div>
+            </div>
+
+            <div id="routineList"></div>
+        </section>
+
+    </main>
+
+<script>
+/* ==============================================
+   MULTILINGUAL SUPPORT
+============================================== */
+const translations = {
+  "en-US": {
+    sosBtn: "🚨 EMERGENCY SOS",
+    sosSub: "Tap if you need immediate help",
+    nextUp: "Next Up",
+    takeMedBtn: "✓ I Took This Medicine",
+    medDone: "✓ Completed",
+    voiceTitle: "🎙️ Voice Health Helper",
+    voiceBtn: "🎤 Tap to Speak",
+    voicePrompt: "Tap above and ask: 'When is my next pill?'",
+    voiceDefault: "Try saying: \"When is my next pill?\" or \"I have a headache\"",
+    speechAck: "Great job! Your medicine status has been recorded.",
+    accessibilityTitle: "Accessibility Modes",
+    autoScanBtn: "Auto-Scan",
+    switchBtn: "Switch",
+    audioBtn: "Audio",
+    webcamBtn: "Webcam",
+    noAccessMode: "No accessibility mode active",
+    quickContact: "Quick Contact",
+    callCaregiver: "Call Your Caregiver",
+    callCaregiverDesc: "Need to speak with your caregiver? Tap below to place a call.",
+    callCaregiverBtn: "Call Caregiver",
+    todaysRoutine: "Today's Routine",
+    cancelBtn: "Cancel",
+    sendAlertBtn: "Send Alert",
+    modalTitle: "Emergency Alert",
+    modalDesc: "Send your location to emergency contacts?",
+    morning: "Morning",
+    afternoon: "Afternoon",
+    evening: "Evening",
+    night: "Night",
+    done: "Done",
+    pending: "Pending",
+    missed: "Missed",
+    listening: "Listening...",
+    processing: "Processing...",
+    allMedsDone: "All medications completed for today!",
+    noMedsToday: "No medications scheduled for today."
+  },
+  "hi-IN": {
+    sosBtn: "🚨 आपात्कालीन सहायता (SOS)",
+    sosSub: "तुरंत सहायता के लिए यहां टैप करें",
+    nextUp: "अगली दवा",
+    takeMedBtn: "✓ मैंने यह दवा ले ली है",
+    medDone: "✓ दवा ले ली गई",
+    voiceTitle: "🎙️ आवाज़ स्वास्थ्य सहायक",
+    voiceBtn: "🎤 बोलने के लिए टैप करें",
+    voicePrompt: "ऊपर टैप करें और पूछें: 'मेरी अगली दवा कब है?'",
+    voiceDefault: "कहें: \"मेरी अगली दवा कब है?\" या \"मुझे सिरदर्द है\"",
+    speechAck: "बहुत बढ़िया! आपकी दवा का स्टेटस सेव हो गया है।",
+    accessibilityTitle: "पहुंच मोड",
+    autoScanBtn: "ऑटो-स्कैन",
+    switchBtn: "स्विच",
+    audioBtn: "ऑडियो",
+    webcamBtn: "वेबकैम",
+    noAccessMode: "कोई पहुंच मोड सक्रिय नहीं",
+    quickContact: "त्वरित संपर्क",
+    callCaregiver: "अपने केयरगिवर को कॉल करें",
+    callCaregiverDesc: "अपने केयरगिवर से बात करनी है? कॉल करने के लिए नीचे टैप करें।",
+    callCaregiverBtn: "केयरगिवर को कॉल करें",
+    todaysRoutine: "आज की दिनचर्या",
+    cancelBtn: "रद्द करें",
+    sendAlertBtn: "अलर्ट भेजें",
+    modalTitle: "आपातकालीन अलर्ट",
+    modalDesc: "क्या आप आपातकालीन संपर्कों को अपना स्थान भेजना चाहते हैं?",
+    morning: "सुबह",
+    afternoon: "दोपहर",
+    evening: "शाम",
+    night: "रात",
+    done: "हो गया",
+    pending: "बाकी है",
+    missed: "छूट गया",
+    listening: "सुन रहा हूं...",
+    processing: "प्रोसेसिंग...",
+    allMedsDone: "आज की सभी दवाएं पूरी हो गईं!",
+    noMedsToday: "आज के लिए कोई दवा निर्धारित नहीं।"
+  },
+  "mr-IN": {
+    sosBtn: "🚨 आणीबाणी मदत (SOS)",
+    sosSub: "तात्काळ मदतीसाठी येथे टॅप करा",
+    nextUp: "पुढील औषध",
+    takeMedBtn: "✓ मी हे औषध घेतले आहे",
+    medDone: "✓ पूर्ण झाले",
+    voiceTitle: "🎙️ व्हॉइस आरोग्य सहाय्यक",
+    voiceBtn: "🎤 बोलण्यासाठी टॅप करा",
+    voicePrompt: "वर टॅप करा आणि विचारा: 'माझे पुढील औषध कधी आहे?'",
+    voiceDefault: "विचारा: \"माझे पुढील औषध कधी आहे?\" किंवा \"मला डोकेदुखी आहे\"",
+    speechAck: "छान! तुमच्या औषधाची नोंद झाली आहे.",
+    accessibilityTitle: "प्रवेशयोग्यता मोड",
+    autoScanBtn: "ऑटो-स्कॅन",
+    switchBtn: "स्विच",
+    audioBtn: "ऑडिओ",
+    webcamBtn: "वेबकॅम",
+    noAccessMode: "कोणताही प्रवेश मोड सक्रिय नाही",
+    quickContact: "द्रुत संपर्क",
+    callCaregiver: "तुमच्या कार्यवाहकाला कॉल करा",
+    callCaregiverDesc: "तुमच्या कार्यवाहकाशी बोलायचे आहे? कॉल करण्यासाठी खाली टॅप करा.",
+    callCaregiverBtn: "कार्यवाहकाला कॉल करा",
+    todaysRoutine: "आजची दिनचर्या",
+    cancelBtn: "रद्द करा",
+    sendAlertBtn: "अलर्ट पाठवा",
+    modalTitle: "आणीबाणी अलर्ट",
+    modalDesc: "आपातकालीन संपर्कांना आपले स्थान पाठवायचे आहे का?",
+    morning: "सकाळ",
+    afternoon: "दुपार",
+    evening: "संध्याकाळ",
+    night: "रात्र",
+    done: "पूर्ण",
+    pending: "बाकी",
+    missed: "चुकले",
+    listening: "ऐकत आहे...",
+    processing: "प्रक्रिया...",
+    allMedsDone: "आजची सर्व औषधे पूर्ण झाली!",
+    noMedsToday: "आज कोणतीही औषधे नियोजित नाहीत."
+  }
+};
+
+let currentLang = "en-US";
+
+// Function to update UI Text instantly
+function updateLanguage(selectedLang) {
+  currentLang = selectedLang;
+  const dict = translations[selectedLang];
+  
+  // Update all elements with data-i18n attribute
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const key = element.getAttribute('data-i18n');
+    if (dict[key]) {
+      element.textContent = dict[key];
+    }
+  });
+
+  // Update specific elements by ID
+  document.getElementById('sosBtn').innerText = dict.sosBtn;
+  document.getElementById('sosSubText').innerText = dict.sosSub;
+  
+  // Update accessibility status based on current mode
+  updateAccessibilityStatus();
+  
+  // Re-render routine with new language
+  renderRoutine();
+}
+
+// Event listener for language dropdown
+document.getElementById('langSelect').addEventListener('change', (e) => {
+  updateLanguage(e.target.value);
+});
+
+/* ==============================================
+   BACKEND CONFIG & AUTHENTICATION
+============================================== */
+const API_BASE_URL = 'http://localhost:5000/api';
+let currentUser = null;
+
+var medications = [];
+var nextMedIndex = -1;
+var isListening = false;
+var recognition = null;
+var sosCoords = null;
+
+/* Accessibility State */
+var accessibilityMode = {
+    scanning: false,
+    switchControl: false,
+    audioTrigger: false,
+    webcamGesture: false
+};
+
+var scanInterval = null;
+var scanIndex = 0;
+var scanElements = [];
+var audioContext = null;
+var audioStream = null;
+var audioAnalyzer = null;
+var webcamStream = null;
+
+/* AI Knowledge Base — Multilingual Fallbacks */
+var aiResponses = {
+    "en-US": {
+        "next pill": "Your next medicine will be shown on the dashboard card.",
+        "next medicine": "Check your next medicine card above for details.",
+        "headache": "For a mild headache, rest in a quiet room and drink water. Avoid extra painkillers without checking with your doctor first.",
+        "dizzy": "Sit or lie down and drink water. Rise slowly from sitting. If dizziness continues, please use the Emergency SOS button.",
+        "nausea": "Try sipping water slowly. Eat a plain cracker if you can. If you cannot keep medicines down, contact your caregiver.",
+        "emergency": "If this is an emergency, please tap the red Emergency SOS button at the top of the screen right now.",
+        "help": "I can answer questions about your medications, symptoms, or daily schedule. Just ask me anything!",
+        "thank": "You are welcome! I am always here to help. Take care of yourself."
+    },
+    "hi-IN": {
+        "next pill": "आपकी अगली दवा डैशबोर्ड कार्ड पर दिखाई देगी।",
+        "next medicine": "विवरण के लिए ऊपर अपने अगले दवा कार्ड की जांच करें।",
+        "headache": "हल्के सिरदर्द के लिए, एक शांत कमरे में आराम करें और पानी पिएं। डॉक्टर से पूछे बिना अतिरिक्त दर्द निवारक लेने से बचें।",
+        "dizzy": "बैठें या लेट जाएं और पानी पिएं। बैठने से धीरे-धीरे उठें। अगर चक्कर आता रहता है, तो कृपया आपातकालीन SOS बटन का उपयोग करें।",
+        "nausea": "धीरे-धीरे पानी की चुसकी लेने की कोशिश करें। अगर आप खा सकते हैं तो एक सादा क्रैकर खाएं। अगर आप दवाएं नहीं रख सकते, तो अपने केयरगिवर से संपर्क करें।",
+        "emergency": "अगर यह एक आपातकालीन स्थिति है, तो कृपया अभी स्क्रीन के शीर्ष पर लाल आपातकालीन SOS बटन पर टैप करें।",
+        "help": "मैं आपकी दवाओं, लक्षणों या दैनिक अनुसूची के बारे में प्रश्नों का उत्तर दे सकता हूं। बस मुझसे कुछ भी पूछें!",
+        "thank": "आपका स्वागत है! मैं हमेशा मदद के लिए यहां हूं। अपना ख्याल रखें।"
+    },
+    "mr-IN": {
+        "next pill": "तुमचे पुढील औषध डॅशबोर्ड कार्डवर दिसेल.",
+        "next medicine": "तपशीलांसाठी वरील तुमच्या पुढील औषध कार्डाची तपासणी करा.",
+        "headache": "हलक्या डोकेदुखीसाठी, एका शांत खोलीत विश्रांती घ्या आणि पाणी प्या. डॉक्टरांच्या सल्ल्याशिवाय अतिरिक्त वेदनाशामक घेऊ नका.",
+        "dizzy": "बसा किंवा झोपा आणि पाणी प्या. बसून हळू हळू उठा. जर चक्कर येत राहिले, तर कृपया आणीबाणी SOS बटण वापरा.",
+        "nausea": "हळूहळू पाणी प्यायल्याचा प्रयत्न करा. तुम्ही खाऊ शकत असल्यास एक साधा क्रॅकर खा. तुम्ही औषधे ठेवू शकत नसल्यास, तुमच्या कार्यवाहकाशी संपर्क साधा.",
+        "emergency": "ही आणीबाणी असल्यास, कृपया आत्ताच स्क्रीनच्या शीर्षस्थानी लाल आणीबाणी SOS बटणावर टॅप करा.",
+        "help": "मी तुमच्या औषधां, लक्षणां किंवा दैनंदिन वेळापत्रकाबद्दल प्रश्नांची उत्तरे देऊ शकतो. फक्त मला काहीही विचारा!",
+        "thank": "तुमचे स्वागत आहे! मी नेहमी मदतीसाठी इथे आहे. तुमचा योग्य काळजी घ्या."
+    }
+};
+
+var defaultResponses = {
+    "en-US": [
+        "I am not sure about that. Try asking about your medications, symptoms, or daily schedule.",
+        "I did not understand that clearly. Could you try rephrasing your question?",
+        "That is outside what I know right now. For urgent concerns, please use the SOS button."
+    ],
+    "hi-IN": [
+        "मुझे इसके बारे में यकीन नहीं है। अपनी दवाओं, लक्षणों या दैनिक अनुसूची के बारे में पूछने की कोशिश करें।",
+        "मैंने इसे स्पष्ट रूप से नहीं समझा। क्या आप अपना प्रश्न दोबारा बोल सकते हैं?",
+        "यह वर्तमान में मेरे ज्ञान के बाहर है। तत्काल चिंताओं के लिए, कृपया SOS बटन का उपयोग करें।"
+    ],
+    "mr-IN": [
+        "मला याबद्दल खात्री नाही. तुमच्या औषधां, लक्षणां किंवा दैनंदिन वेळापत्रकाबद्दल विचारण्याचा प्रयत्न करा.",
+        "मला हे स्पष्टपणे समजले नाही. तुम्ही तुमचा प्रश्न पुन्हा विचारू शकता का?",
+        "हे सध्या माझ्या ज्ञानाच्या बाहेर आहे. तातडीच्या गैरसोयींसाठी, कृपया SOS बटण वापरा."
+    ]
+};
+
+/* ==============================================
+   INIT & ROUTE GUARD
+============================================== */
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Authenticate user from LocalStorage
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) {
+        window.location.href = 'patient-login.html';
+        return;
+    }
+    
+    try {
+        currentUser = JSON.parse(storedUser);
+    } catch (e) {
+        localStorage.removeItem('currentUser');
+        window.location.href = 'patient-login.html';
+        return;
+    }
+
+    // Populate patient name dynamically if element exists
+    var nameEl = document.getElementById('patientDisplayName');
+    if (nameEl) {
+        nameEl.textContent = currentUser.name || currentUser.userId || 'Patient';
+    }
+
+    // 2. Fetch routines and init system
+    fetchPatientRoutine();
+    initVoice();
+    bindEvents();
+    initScanElements();
+});
+
+/* ==============================================
+   API INTEGRATION (FETCH PATIENT DATA)
+============================================== */
+async function fetchPatientRoutine() {
+    const patientId = currentUser.id || currentUser._id || currentUser.userId;
+    try {
+        const response = await fetch(`${API_BASE_URL}/patients/${patientId}/routine`);
+        const data = await response.json();
+
+        if (response.ok && data.success && Array.isArray(data.medications)) {
+            medications = data.medications;
+        } else {
+            console.warn("Backend routine unavailable, fallback active.", data.message);
+            medications = data.medications || [];
+        }
+    } catch (err) {
+        console.error("Network error fetching routine:", err);
+        toast("Unable to sync latest schedule from server", "wrn");
+    } finally {
+        updateNextMed();
+        renderRoutine();
+    }
+}
+
+/* ==============================================
+   MULTILINGUAL VOICE RECOGNITION & SYNTHESIS
+============================================== */
+function startVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return alert("Speech recognition not supported");
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = currentLang; // Set language based on selection
+    
+    const statusEl = document.getElementById('micStatus');
+    const dict = translations[currentLang];
+    
+    recognition.onstart = () => {
+        if (statusEl) statusEl.innerText = dict.listening;
+        document.getElementById('micBtn').classList.add('listening');
+        document.getElementById('waveBars').classList.add('on');
+    };
+
+    recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (statusEl) statusEl.innerText = `"${transcript}"`;
+        document.getElementById('waveBars').classList.remove('on');
+        
+        // Pass the transcript AND currentLang to the AI assistant
+        processVoiceInput(transcript, currentLang);
+    };
+
+    recognition.onend = () => {
+        document.getElementById('micBtn').classList.remove('listening');
+        document.getElementById('waveBars').classList.remove('on');
+    };
+
+    recognition.onerror = (event) => {
+        console.error("Speech recognition error:", event.error);
+        if (statusEl) statusEl.innerText = dict.voicePrompt;
+        document.getElementById('micBtn').classList.remove('listening');
+        document.getElementById('waveBars').classList.remove('on');
+    };
+
+    recognition.start();
+}
+
+function speakText(textToSpeak) {
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = currentLang; // Sets regional accent and pronunciation
+    utterance.rate = 0.85; // Speak slightly slower for elderly users
+    
+    window.speechSynthesis.speak(utterance);
+}
+
+function processVoiceInput(transcript, lang) {
+    const dict = translations[lang];
+    const statusEl = document.getElementById('micStatus');
+    const responseEl = document.getElementById('aiResponse');
+    
+    if (statusEl) statusEl.innerText = dict.processing;
+    
+    // Check for medicine taken confirmation
+    if (transcript.toLowerCase().includes("took medicine") || 
+        transcript.toLowerCase().includes("ले ली") || 
+        transcript.toLowerCase().includes("घेतले")) {
+        markMedicineTaken();
+        if (responseEl) responseEl.innerText = dict.speechAck;
+        speakText(dict.speechAck);
+        return;
+    }
+    
+    // Check against knowledge base
+    let response = null;
+    const langResponses = aiResponses[lang] || aiResponses["en-US"];
+    
+    for (const [key, value] of Object.entries(langResponses)) {
+        if (transcript.toLowerCase().includes(key.toLowerCase())) {
+            response = value;
+            break;
+        }
+    }
+    
+    // If no match found, use default response
+    if (!response) {
+        const langDefaults = defaultResponses[lang] || defaultResponses["en-US"];
+        response = langDefaults[Math.floor(Math.random() * langDefaults.length)];
+    }
+    
+    // Display and speak the response
+    if (responseEl) responseEl.innerText = response;
+    if (statusEl) statusEl.innerText = dict.voicePrompt;
+    
+    speakText(response);
+    
+    // Add visual feedback
+    responseEl.classList.add('speaking');
+    setTimeout(() => {
+        responseEl.classList.remove('speaking');
+    }, 3000);
+}
+
+/* ==============================================
+   ACCESSIBILITY FEATURES
+============================================== */
+function initScanElements() {
+    scanElements = [
+        document.getElementById("sosZone"),
+        document.getElementById("takeMedBtn"),
+        document.getElementById("callBtn")
+    ].filter(Boolean);
+}
+
+function toggleAccessibilityMode(mode) {
+    Object.keys(accessibilityMode).forEach(function(key) {
+        accessibilityMode[key] = false;
+    });
+    
+    if (!accessibilityMode[mode] || (mode === 'scanning' && !scanInterval)) {
+        accessibilityMode[mode] = true;
+    }
+    
+    document.querySelectorAll('.mode-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    
+    updateAccessibilityStatus();
+    
+    stopScanning();
+    stopAudioTrigger();
+    stopWebcam();
+    
+    if (accessibilityMode.scanning) {
+        if(document.getElementById('modeScan')) document.getElementById('modeScan').classList.add('active');
+        startScanning();
+    } else if (accessibilityMode.switchControl) {
+        if(document.getElementById('modeSwitch')) document.getElementById('modeSwitch').classList.add('active');
+        startScanning();
+    } else if (accessibilityMode.audioTrigger) {
+        if(document.getElementById('modeAudio')) document.getElementById('modeAudio').classList.add('active');
+        startAudioTrigger();
+    } else if (accessibilityMode.webcamGesture) {
+        if(document.getElementById('modeWebcam')) document.getElementById('modeWebcam').classList.add('active');
+        startWebcam();
+    }
+}
+
+function updateAccessibilityStatus() {
+    var dot = document.getElementById('statusDot');
+    var text = document.getElementById('statusText');
+    if (!dot || !text) return;
+    
+    const dict = translations[currentLang];
+    
+    if (accessibilityMode.scanning) {
+        dot.classList.add('active');
+        text.textContent = 'Auto-scanning active - 3 second cycle';
+    } else if (accessibilityMode.switchControl) {
+        dot.classList.add('active');
+        text.textContent = 'Switch control active - Press Space/Enter to select';
+    } else if (accessibilityMode.audioTrigger) {
+        dot.classList.add('active');
+        text.textContent = 'Audio trigger active - Make a loud sound to select';
+    } else if (accessibilityMode.webcamGesture) {
+        dot.classList.add('active');
+        text.textContent = 'Webcam gesture control active - Blink or move to select';
+    } else {
+        dot.classList.remove('active');
+        text.textContent = dict.noAccessMode;
+    }
+}
+
+/* ====== AUTO-SCANNING FOCUS LOOP ====== */
+function startScanning() {
+    scanIndex = 0;
+    cycleFocus();
+    scanInterval = setInterval(cycleFocus, 3000);
+}
+
+function stopScanning() {
+    if (scanInterval) {
+        clearInterval(scanInterval);
+        scanInterval = null;
+    }
+    scanElements.forEach(function(el) {
+        if (el) el.classList.remove('scanning-active');
+    });
+}
+
+function cycleFocus() {
+    scanElements.forEach(function(el) {
+        if (el) el.classList.remove('scanning-active');
+    });
+    
+    if (scanElements[scanIndex]) {
+        scanElements[scanIndex].classList.add('scanning-active');
+        scanElements[scanIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    scanIndex = (scanIndex + 1) % scanElements.length;
+}
+
+function onGestureDetected() {
+    var currentIndex = (scanIndex - 1 + scanElements.length) % scanElements.length;
+    var currentElement = scanElements[currentIndex];
+    
+    if (currentElement) {
+        var indicator = document.getElementById('scanIndicator');
+        if (indicator) {
+            indicator.classList.add('show');
+            setTimeout(function() { indicator.classList.remove('show'); }, 2000);
+        }
+        flashScreen("rgba(255, 215, 0, 0.15)");
+        playTone(660, 0.15);
+        setTimeout(function() { playTone(880, 0.15); }, 100);
+        currentElement.click();
+    }
+}
+
+/* ====== SINGLE-SWITCH / KEYBOARD CONTROL ====== */
+document.addEventListener('keydown', function(e) {
+    if (e.code === 'Space' || e.code === 'Enter') {
+        if (accessibilityMode.switchControl || accessibilityMode.scanning) {
+            var sosModal = document.getElementById('sosModal');
+            if (!sosModal || !sosModal.classList.contains('vis')) {
+                e.preventDefault();
+                onGestureDetected();
+            }
+        }
+    }
+    if (e.key === 'Escape') {
+        toggleAccessibilityMode(null);
+    }
+});
+
+/* ====== NON-VERBAL AUDIO / TONE TRIGGERS ====== */
+function startAudioTrigger() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+            audioStream = stream;
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioAnalyzer = audioContext.createAnalyser();
+            var microphone = audioContext.createMediaStreamSource(stream);
+            microphone.connect(audioAnalyzer);
+            
+            var meter = document.getElementById('audioMeter');
+            if(meter) meter.classList.add('show');
+            monitorAudio();
+        })
+        .catch(function(err) {
+            toast('Microphone access denied for audio trigger', 'err');
+            toggleAccessibilityMode(null);
+        });
+}
+
+function stopAudioTrigger() {
+    if (audioStream) {
+        audioStream.getTracks().forEach(track => track.stop());
+        audioStream = null;
+    }
+    if (audioContext) {
+        audioContext.close();
+        audioContext = null;
+    }
+    var meter = document.getElementById('audioMeter');
+    if(meter) meter.classList.remove('show');
+}
+
+function monitorAudio() {
+    if (!audioAnalyzer || !accessibilityMode.audioTrigger) return;
+    
+    var dataArray = new Uint8Array(audioAnalyzer.frequencyBinCount);
+    audioAnalyzer.getByteFrequencyData(dataArray);
+    
+    var volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+    var volumePercent = Math.min(100, Math.round((volume / 128) * 100));
+    
+    var fill = document.getElementById('meterFill');
+    var label = document.getElementById('meterLabel');
+    if(fill) fill.style.width = volumePercent + '%';
+    if(label) label.textContent = volumePercent + '%';
+    
+    if (volume > 80) {
+        onGestureDetected();
+        setTimeout(monitorAudio, 2000);
+        return;
+    }
+    requestAnimationFrame(monitorAudio);
+}
+
+/* ====== WEBCAM GESTURE CONTROL ====== */
+function startWebcam() {
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            webcamStream = stream;
+            var video = document.getElementById('webcamPreview');
+            if(video) {
+                video.srcObject = stream;
+                video.classList.add('show');
+                startSimpleGestureDetection(video);
+            }
+            startScanning();
+        })
+        .catch(function(err) {
+            toast('Camera access denied for gesture control', 'err');
+            toggleAccessibilityMode(null);
+        });
+}
+
+function stopWebcam() {
+    if (webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream = null;
+    }
+    var video = document.getElementById('webcamPreview');
+    if(video) video.classList.remove('show');
+}
+
+function startSimpleGestureDetection(video) {
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    var lastFrame = null;
+    var movementThreshold = 30;
+    var movementCount = 0;
+    
+    function analyzeFrame() {
+        if (!accessibilityMode.webcamGesture || !video.srcObject) return;
+        
+        canvas.width = video.videoWidth / 4 || 160;
+        canvas.height = video.videoHeight / 4 || 120;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        var currentFrame = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        
+        if (lastFrame) {
+            var movement = calculateMovement(lastFrame, currentFrame);
+            if (movement > movementThreshold) {
+                movementCount++;
+                if (movementCount > 5) {
+                    onGestureDetected();
+                    movementCount = 0;
+                    setTimeout(analyzeFrame, 2000);
+                    return;
+                }
+            } else {
+                movementCount = 0;
+            }
+        }
+        lastFrame = currentFrame;
+        requestAnimationFrame(analyzeFrame);
+    }
+    
+    video.onloadedmetadata = function() {
+        analyzeFrame();
+    };
+}
+
+function calculateMovement(frame1, frame2) {
+    var data1 = frame1.data;
+    var data2 = frame2.data;
+    var totalDifference = 0;
+    var sampleSize = Math.min(data1.length, data2.length);
+    
+    for (var i = 0; i < sampleSize; i += 16) {
+        var diff = Math.abs(data1[i] - data2[i]) + 
+                   Math.abs(data1[i+1] - data2[i+1]) + 
+                   Math.abs(data1[i+2] - data2[i+2]);
+        totalDifference += diff;
+    }
+    return totalDifference / (sampleSize / 16) / 3;
+}
+
+/* ==============================================
+   ZONE 2: NEXT MEDICATION
+============================================== */
+function updateNextMed() {
+    var next = null;
+    for (var i = 0; i < medications.length; i++) {
+        if (!medications[i].taken) {
+            next = medications[i];
+            nextMedIndex = i;
+            break;
+        }
+    }
+
+    var card = document.getElementById("medCard");
+    var badge = document.getElementById("medBadge");
+    var btn = document.getElementById("takeMedBtn");
+    var msg = document.getElementById("medTakenMsg");
+    const dict = translations[currentLang];
+
+    if (!card || !badge || !btn || !msg) return;
+
+    if (!next) {
+        card.classList.remove("med-card");
+        card.classList.add("med-card", "taken");
+        badge.className = "card-label badge-ok";
+        document.getElementById("medName").textContent = dict.allMedsDone;
+        document.getElementById("medTimeText").textContent = "";
+        document.getElementById("medInstr").textContent = "";
+        btn.style.display = "none";
+        msg.classList.add("show");
+        return;
+    }
+
+    card.classList.add("med-card");
+    card.classList.remove("taken");
+    badge.className = "card-label badge-warn";
+    document.getElementById("medName").textContent = next.name || "Unnamed Medicine";
+    document.getElementById("medTimeText").textContent = formatTime(next.time) + (next.period ? ` (${next.period})` : "");
+    document.getElementById("medInstr").textContent = next.instruction || "Take as prescribed.";
+    btn.style.display = "flex";
+    btn.disabled = false;
+    msg.classList.remove("show");
+}
+
+function markMedicineTaken() {
+    if (nextMedIndex >= 0 && nextMedIndex < medications.length) {
+        medications[nextMedIndex].taken = true;
+        medications[nextMedIndex].takenAt = new Date().toISOString();
+        
+        // Update backend
+        updateMedicationStatus(medications[nextMedIndex]._id || nextMedIndex, true);
+        
+        updateNextMed();
+        renderRoutine();
+        
+        // Show toast notification
+        toast(translations[currentLang].speechAck, "ok");
+        
+        // Play confirmation sound
+        playTone(523, 0.1);
+        setTimeout(() => playTone(659, 0.1), 100);
+        setTimeout(() => playTone(784, 0.2), 200);
+    }
+}
+
+async function updateMedicationStatus(medId, status) {
+    try {
+        await fetch(`${API_BASE_URL}/medications/${medId}/status`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ taken: status })
+        });
+    } catch (err) {
+        console.error("Failed to update medication status:", err);
+    }
+}
+
+/* ==============================================
+   ZONE 4: ROUTINE RENDERING
+============================================== */
+function renderRoutine() {
+    const dict = translations[currentLang];
+    const container = document.getElementById("routineList");
+    if (!container) return;
+
+    if (!medications.length) {
+        container.innerHTML = `<p style="text-align:center;color:var(--muted);padding:20px;">${dict.noMedsToday}</p>`;
+        document.getElementById("routineBar").style.width = "0%";
+        document.getElementById("routinePct").textContent = "0%";
+        return;
+    }
+
+    // Group by time period
+    var groups = {};
+    medications.forEach(function(med) {
+        var period = med.period || "morning";
+        if (!groups[period]) groups[period] = [];
+        groups[period].push(med);
+    });
+
+    // Calculate progress
+    var takenCount = medications.filter(m => m.taken).length;
+    var pct = Math.round((takenCount / medications.length) * 100);
+    document.getElementById("routineBar").style.width = pct + "%";
+    document.getElementById("routinePct").textContent = pct + "%";
+
+    // Period translation map
+    const periodMap = {
+        "morning": dict.morning,
+        "afternoon": dict.afternoon,
+        "evening": dict.evening,
+        "night": dict.night
+    };
+
+    var html = "";
+    var periodIcons = {
+        "morning": "fa-sun",
+        "afternoon": "fa-cloud-sun",
+        "evening": "fa-cloud-moon",
+        "night": "fa-moon"
+    };
+
+    for (var period in groups) {
+        html += `<div class="time-block">
+            <div class="time-label">
+                <i class="fas ${periodIcons[period] || 'fa-clock'}"></i>
+                ${periodMap[period] || period}
+            </div>`;
+
+        groups[period].forEach(function(med) {
+            var status = med.taken ? "done" : (isPastTime(med.time) ? "missed" : "pending");
+            var iconClass = status === "done" ? "done" : (status === "missed" ? "missed" : "pending");
+            var icon = status === "done" ? "fa-check" : (status === "missed" ? "fa-times" : "fa-clock");
+            var nameClass = status === "done" ? "struck" : "";
+            var statusText = dict[status] || status;
+
+            html += `<div class="routine-item">
+                <div class="routine-icon ${iconClass}"><i class="fas ${icon}"></i></div>
+                <div class="routine-name ${nameClass}">${med.name || "Unnamed"}</div>
+                <div class="routine-time">${formatTime(med.time)}</div>
+                <div class="routine-status ${status}">${statusText}</div>
+            </div>`;
+        });
+
+        html += `</div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+function isPastTime(timeStr) {
+    if (!timeStr) return false;
+    var now = new Date();
+    var [hours, minutes] = timeStr.split(':').map(Number);
+    var period = now.getHours() < 12 ? 'AM' : 'PM';
+    var medHour = hours;
+    
+    // Convert to 24-hour format if needed
+    if (period === 'PM' && hours < 12) medHour = hours + 12;
+    if (period === 'AM' && hours === 12) medHour = 0;
+    
+    return now.getHours() > medHour || 
+           (now.getHours() === medHour && now.getMinutes() > minutes);
+}
+
+function formatTime(timeStr) {
+    if (!timeStr) return "";
+    var [hours, minutes] = timeStr.split(':');
+    var h = parseInt(hours);
+    var m = minutes;
+    var period = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m} ${period}`;
+}
+
+/* ==============================================
+   VOICE ASSISTANT INIT
+============================================== */
+function initVoice() {
+    var micBtn = document.getElementById("micBtn");
+    if (micBtn) {
+        micBtn.addEventListener("click", function() {
+            if (!isListening) {
+                startVoiceRecognition();
+                isListening = true;
+            } else {
+                if (recognition) {
+                    recognition.stop();
+                }
+                isListening = false;
+            }
+        });
+    }
+}
+
+/* ==============================================
+   EVENT BINDINGS
+============================================== */
+function bindEvents() {
+    // SOS
+    var sosZone = document.getElementById("sosZone");
+    if (sosZone) {
+        sosZone.addEventListener("click", openSOSModal);
+        sosZone.addEventListener("keydown", function(e) {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openSOSModal();
+            }
+        });
+    }
+
+    // SOS Modal
+    var sosCancel = document.getElementById("sosCancel");
+    if (sosCancel) sosCancel.addEventListener("click", closeSOSModal);
+    
+    var sosConfirm = document.getElementById("sosConfirm");
+    if (sosConfirm) sosConfirm.addEventListener("click", sendSOSAlert);
+
+    // Take Medicine
+    var takeMedBtn = document.getElementById("takeMedBtn");
+    if (takeMedBtn) takeMedBtn.addEventListener("click", markMedicineTaken);
+
+    // Call Caregiver
+    var callBtn = document.getElementById("callBtn");
+    if (callBtn) callBtn.addEventListener("click", callCaregiver);
+
+    // Font Size
+    var fsUp = document.getElementById("fsUp");
+    if (fsUp) fsUp.addEventListener("click", function() {
+        var current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')) || 1;
+        document.documentElement.style.setProperty('--fs', Math.min(1.4, current + 0.1));
+    });
+
+    var fsDn = document.getElementById("fsDn");
+    if (fsDn) fsDn.addEventListener("click", function() {
+        var current = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')) || 1;
+        document.documentElement.style.setProperty('--fs', Math.max(0.8, current - 0.1));
+    });
+
+    // Accessibility Modes
+    var modeScan = document.getElementById("modeScan");
+    if (modeScan) modeScan.addEventListener("click", function() { toggleAccessibilityMode('scanning'); });
+    
+    var modeSwitch = document.getElementById("modeSwitch");
+    if (modeSwitch) modeSwitch.addEventListener("click", function() { toggleAccessibilityMode('switchControl'); });
+    
+    var modeAudio = document.getElementById("modeAudio");
+    if (modeAudio) modeAudio.addEventListener("click", function() { toggleAccessibilityMode('audioTrigger'); });
+    
+    var modeWebcam = document.getElementById("modeWebcam");
+    if (modeWebcam) modeWebcam.addEventListener("click", function() { toggleAccessibilityMode('webcamGesture'); });
+}
+
+/* ==============================================
+   SOS FUNCTIONALITY
+============================================== */
+function openSOSModal() {
+    var modal = document.getElementById("sosModal");
+    if (modal) {
+        modal.classList.add("vis");
+        detectLocation();
+    }
+}
+
+function closeSOSModal() {
+    var modal = document.getElementById("sosModal");
+    if (modal) modal.classList.remove("vis");
+}
+
+function detectLocation() {
+    var locEl = document.getElementById("sosLoc");
+    if (!locEl) return;
+    
+    locEl.textContent = "Detecting location...";
+    
+    if (!navigator.geolocation) {
+        locEl.textContent = "Geolocation not supported";
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            sosCoords = {
+                lat: pos.coords.latitude,
+                lng: pos.coords.longitude
+            };
+            locEl.textContent = `Lat: ${sosCoords.lat.toFixed(4)}, Lng: ${sosCoords.lng.toFixed(4)}`;
+        },
+        function(err) {
+            locEl.textContent = "Location access denied. Alert will be sent without location.";
+            console.error("Geolocation error:", err);
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+}
+
+function sendSOSAlert() {
+    closeSOSModal();
+    flashScreen("rgba(211, 47, 47, 0.2)");
+    playTone(440, 0.3);
+    setTimeout(() => playTone(440, 0.3), 400);
+    setTimeout(() => playTone(440, 0.5), 800);
+    
+    // Send to backend
+    fetch(`${API_BASE_URL}/sos`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            patientId: currentUser.id || currentUser._id || currentUser.userId,
+            location: sosCoords,
+            timestamp: new Date().toISOString()
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            toast("Emergency alert sent to your caregiver!", "ok");
+        } else {
+            toast("Failed to send alert. Please call emergency services.", "err");
+        }
+    })
+    .catch(err => {
+        console.error("SOS error:", err);
+        toast("Network error. Please try calling your caregiver directly.", "err");
+    });
+}
+
+function callCaregiver() {
+    // In a real app, this would initiate a call
+    toast("Initiating call to caregiver...", "ok");
+    playTone(523, 0.1);
+    setTimeout(() => playTone(659, 0.1), 150);
+    setTimeout(() => playTone(784, 0.1), 300);
+    setTimeout(() => playTone(1047, 0.2), 450);
+}
+
+/* ==============================================
+   UTILITY FUNCTIONS
+============================================== */
+function toast(message, type) {
+    var rack = document.getElementById("toasts");
+    if (!rack) return;
+    
+    var t = document.createElement("div");
+    t.className = `tst ${type || ''}`;
+    t.innerHTML = `<i class="fas ${type === 'ok' ? 'fa-check-circle' : type === 'err' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i><span>${message}</span>`;
+    rack.appendChild(t);
+    
+    setTimeout(function() {
+        if (t.parentNode) t.parentNode.removeChild(t);
+    }, 4000);
+}
+
+function flashScreen(color) {
+    var flash = document.getElementById("flash");
+    if (!flash) return;
+    
+    flash.style.background = color || "rgba(255, 215, 0, 0.15)";
+    flash.classList.add("on");
+    setTimeout(function() {
+        flash.classList.remove("on");
+    }, 300);
+}
+
+function playTone(freq, duration) {
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.value = 0.1;
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+    } catch (e) {
+        console.warn("Audio playback failed:", e);
+    }
+}
+</script>
+
+</body>
+</html>

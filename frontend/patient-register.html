@@ -1,0 +1,1444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CareCompanion — Patient Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --med: #1976d2;
+            --med-dk: #1565c0;
+            --med-lt: #e3f2fd;
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --txt: #333333;
+            --sub: #666666;
+            --ok: #2e7d32;
+            --ok-bg: #e8f5e9;
+            --danger: #d32f2f;
+            --danger-bg: #ffebee;
+            --warn: #ed6c02;
+            --warn-bg: #fff3e0;
+            --border: #dce1e6;
+            --input-bg: #f8f9fb;
+            --fs: 1;
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: calc(17px * var(--fs)); }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--txt);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        *:focus-visible { outline: 3px solid var(--med); outline-offset: 3px; }
+
+        #ecgCv {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.1;
+        }
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .ob1 {
+            width: 360px;
+            height: 360px;
+            background: var(--med);
+            opacity: 0.06;
+            top: -120px;
+            right: -90px;
+            animation: oF1 18s ease-in-out infinite;
+        }
+        .ob2 {
+            width: 280px;
+            height: 280px;
+            background: #42a5f5;
+            opacity: 0.05;
+            bottom: -80px;
+            left: -70px;
+            animation: oF2 22s ease-in-out infinite;
+        }
+        @keyframes oF1 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-30px, 45px); }
+        }
+        @keyframes oF2 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        .shell {
+            position: relative;
+            z-index: 1;
+            max-width: 540px;
+            margin: 0 auto;
+            padding: 16px 20px 40px;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0 20px;
+        }
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--med);
+            font-weight: 800;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: gap 0.2s, color 0.2s;
+            background: none;
+            border: none;
+            font-family: 'Nunito';
+        }
+        .back-link:hover { gap: 10px; color: var(--med-dk); }
+        .font-ctrls { display: flex; gap: 5px; }
+        .f-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            border: 1px solid var(--border);
+            background: #fff;
+            color: var(--txt);
+            cursor: pointer;
+            font-size: 0.72rem;
+            font-weight: 900;
+            font-family: 'Nunito';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .f-btn:hover { background: var(--med-lt); color: var(--med); }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .brand-ic {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--med), #42a5f5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.25);
+        }
+        .brand-ic i { color: #fff; font-size: 1.35rem; }
+        .brand-tx { font-size: 1.25rem; font-weight: 900; }
+        .reg-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+        .reg-sub {
+            text-align: center;
+            color: var(--sub);
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        .step-dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--sub);
+            flex-shrink: 0;
+            transition: all 0.4s;
+            position: relative;
+            z-index: 1;
+        }
+        .step-dot.active {
+            border-color: var(--med);
+            color: #fff;
+            background: var(--med);
+            box-shadow: 0 3px 12px rgba(25, 118, 210, 0.3);
+        }
+        .step-dot.done {
+            border-color: var(--ok);
+            color: #fff;
+            background: var(--ok);
+        }
+        .step-line {
+            flex: 1;
+            height: 3px;
+            background: var(--border);
+            margin: 0 -2px;
+            position: relative;
+            overflow: hidden;
+            min-width: 20px;
+        }
+        .step-line-fill {
+            height: 100%;
+            background: var(--ok);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        .step-line.filled .step-line-fill { width: 100%; }
+
+        .reg-card {
+            background: var(--card);
+            border-radius: 22px;
+            padding: 32px 28px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        .reg-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--med), #42a5f5, var(--ok));
+        }
+
+        .steps-wrap { position: relative; overflow: hidden; }
+        .step-panel { display: none; animation: stepIn 0.4s ease; }
+        .step-panel.active { display: block; }
+        @keyframes stepIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .step-panel.slide-back { animation: stepBack 0.35s ease; }
+        @keyframes stepBack {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .step-heading {
+            font-size: 1.15rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-heading i { color: var(--med); font-size: 1rem; }
+        .step-desc {
+            font-size: 0.85rem;
+            color: var(--sub);
+            font-weight: 600;
+            margin-bottom: 22px;
+        }
+
+        .fg { margin-bottom: 20px; }
+        .fl {
+            display: block;
+            font-size: 0.84rem;
+            font-weight: 700;
+            color: var(--sub);
+            margin-bottom: 7px;
+        }
+        .fl .req { color: var(--danger); margin-left: 2px; }
+        .fi-wrap { position: relative; }
+        .fi-ic {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bbb;
+            font-size: 1.05rem;
+            pointer-events: none;
+            transition: color 0.25s;
+            z-index: 2;
+        }
+        .fi {
+            width: 100%;
+            padding: 16px 16px 16px 50px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            font-family: 'Nunito';
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--txt);
+            background: var(--input-bg);
+            transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+        }
+        .fi:focus {
+            border-color: var(--med);
+            box-shadow: 0 0 0 4px rgba(25, 118, 210, 0.1);
+            background: #fff;
+            outline: none;
+        }
+        .fi:focus ~ .fi-ic { color: var(--med); }
+        .fi::placeholder { color: #aaa; font-weight: 600; }
+        .fi-err {
+            color: var(--danger);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-top: 5px;
+            display: none;
+            align-items: center;
+            gap: 5px;
+        }
+        .fi-err.show { display: flex; }
+        textarea.fi { resize: vertical; min-height: 80px; padding-top: 14px; }
+        select.fi { appearance: none; cursor: pointer; padding-right: 44px; }
+        .sel-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #bbb;
+            pointer-events: none;
+            font-size: 0.8rem;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* Password field specific */
+        .fi-wrap.pw-wrap .fi {
+            padding-right: 100px;
+        }
+        .pw-toggle {
+            position: absolute;
+            right: 54px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #bbb;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 6px;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .pw-toggle:hover { color: var(--med); }
+        .pw-toggle:focus-visible { outline: 2px solid var(--med); outline-offset: 2px; border-radius: 4px; }
+        .pw-clear {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #bbb;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 6px;
+            transition: color 0.2s;
+            z-index: 2;
+            display: none;
+        }
+        .pw-clear.show { display: block; }
+        .pw-clear:hover { color: var(--danger); }
+        .pw-clear:focus-visible { outline: 2px solid var(--med); outline-offset: 2px; border-radius: 4px; }
+
+        .pw-strength {
+            margin-top: 10px;
+            display: none;
+        }
+        .pw-strength.show { display: block; }
+        .pw-str-track {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .pw-str-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.35s ease, background 0.35s ease;
+        }
+        .pw-str-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .pw-str-text { transition: color 0.3s; }
+        .pw-reqs {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px 14px;
+        }
+        .pw-req {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.25s;
+        }
+        .pw-req i {
+            font-size: 0.65rem;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s;
+            flex-shrink: 0;
+        }
+        .pw-req.met { color: var(--ok); }
+        .pw-req.met i {
+            border-color: var(--ok);
+            background: var(--ok);
+            color: #fff;
+        }
+
+        /* Email valid indicator */
+        .email-valid-ic {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            opacity: 0;
+            transition: opacity 0.25s, transform 0.25s;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .email-valid-ic.show {
+            opacity: 1;
+        }
+        .email-valid-ic.ok {
+            color: var(--ok);
+            animation: popIn 0.3s ease;
+        }
+        .email-valid-ic.bad {
+            color: var(--danger);
+            animation: popIn 0.3s ease;
+        }
+        @keyframes popIn {
+            0% { transform: translateY(-50%) scale(0); }
+            70% { transform: translateY(-50%) scale(1.2); }
+            100% { transform: translateY(-50%) scale(1); }
+        }
+
+        .opt-group { display: flex; flex-wrap: wrap; gap: 10px; }
+        .opt-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: var(--input-bg);
+            font-family: 'Nunito';
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--sub);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .opt-btn:hover { border-color: #bbb; color: var(--txt); }
+        .opt-btn.sel {
+            border-color: var(--med);
+            background: var(--med-lt);
+            color: var(--med);
+        }
+        .opt-btn i { font-size: 0.85rem; width: 18px; text-align: center; }
+
+        .review-section { margin-bottom: 18px; }
+        .review-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--med);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .review-title i { font-size: 0.65rem; }
+        .review-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.92rem;
+            gap: 10px;
+        }
+        .review-row:last-child { border-bottom: none; }
+        .review-label { color: var(--sub); font-weight: 600; flex-shrink: 0; }
+        .review-val {
+            font-weight: 800;
+            color: var(--txt);
+            text-align: right;
+            word-break: break-word;
+        }
+
+        .nav-row { display: flex; gap: 12px; margin-top: 28px; }
+        .btn-prev {
+            flex: 1;
+            padding: 16px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: #fff;
+            color: var(--txt);
+            font-family: 'Nunito';
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-prev:hover { border-color: #bbb; background: var(--input-bg); }
+        .btn-next {
+            flex: 2;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, var(--med), var(--med-dk));
+            color: #fff;
+            font-family: 'Nunito';
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.25s;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-next:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.3);
+        }
+        .btn-next:active { transform: translateY(0) scale(0.98); }
+        .btn-next::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+            transform: translateX(-100%);
+        }
+        .btn-next:hover::after { animation: bShm 0.7s ease; }
+        @keyframes bShm { to { transform: translateX(100%); } }
+        .btn-next:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none;
+            box-shadow: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .login-link {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 0.92rem;
+            color: var(--sub);
+            font-weight: 600;
+        }
+        .login-link a { color: var(--med); font-weight: 800; text-decoration: none; }
+        .login-link a:hover { text-decoration: underline; }
+
+        .success-ov {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(255, 255, 255, 0.97);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .success-ov.vis { opacity: 1; pointer-events: auto; }
+        .s-icon {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: var(--ok-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 22px;
+            transform: scale(0);
+            transition: transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s;
+        }
+        .success-ov.vis .s-icon { transform: scale(1); }
+        .s-icon i { font-size: 2.8rem; color: var(--ok); }
+        .s-text {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--txt);
+            opacity: 0;
+            transform: translateY(12px);
+            transition: all 0.4s ease 0.45s;
+        }
+        .success-ov.vis .s-text { opacity: 1; transform: translateY(0); }
+        .s-sub {
+            font-size: 1rem;
+            color: var(--sub);
+            margin-top: 6px;
+            opacity: 0;
+            transition: opacity 0.4s ease 0.65s;
+            text-align: center;
+            padding: 0 30px;
+            line-height: 1.5;
+        }
+        .success-ov.vis .s-sub { opacity: 1; }
+        .s-btn {
+            margin-top: 28px;
+            padding: 14px 36px;
+            border-radius: 12px;
+            border: none;
+            background: var(--ok);
+            color: #fff;
+            font-family: 'Nunito';
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease 0.85s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .success-ov.vis .s-btn { opacity: 1; transform: translateY(0); }
+        .s-btn:hover { background: #256029; }
+
+        .toast-rack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+            max-width: 380px;
+        }
+        .tst {
+            pointer-events: auto;
+            background: var(--card);
+            border-radius: 12px;
+            padding: 13px 16px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+            border-left: 4px solid var(--med);
+            animation: tI 0.4s ease, tO 0.4s ease 3.5s forwards;
+        }
+        .tst.ok { border-left-color: var(--ok); }
+        .tst.err { border-left-color: var(--danger); }
+        .tst.wrn { border-left-color: var(--warn); }
+        @keyframes tI {
+            from { opacity: 0; transform: translateX(60px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes tO {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(60px); }
+        }
+
+        @media (max-width: 500px) {
+            html { font-size: 16px; }
+            .reg-card { padding: 24px 18px; border-radius: 18px; }
+            .opt-btn { padding: 10px 14px; font-size: 0.88rem; }
+            .step-dot { width: 32px; height: 32px; font-size: 0.75rem; }
+            .fi-wrap.pw-wrap .fi { padding-right: 90px; }
+            .pw-reqs { grid-template-columns: 1fr; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="ecgCv" aria-hidden="true"></canvas>
+    <div class="bg-orb ob1" aria-hidden="true"></div>
+    <div class="bg-orb ob2" aria-hidden="true"></div>
+
+    <div class="toast-rack" id="toasts" aria-live="polite"></div>
+
+    <div class="success-ov" id="successOv">
+        <div class="s-icon"><i class="fas fa-check"></i></div>
+        <div class="s-text">Registration Complete</div>
+        <div class="s-sub">Your account has been created successfully. Your caregiver has been notified and will confirm your access shortly.</div>
+        <a href="patient-dashboard.html" class="s-btn" id="goDashboardBtn"><i class="fas fa-house-medical"></i> Go to Dashboard</a>
+    </div>
+
+    <main class="shell">
+        <div class="top-bar">
+            <a href="patient-login.html" class="back-link" aria-label="Go back to login">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+            <div class="font-ctrls">
+                <button class="f-btn" id="fsDn" aria-label="Smaller text">A-</button>
+                <button class="f-btn" id="fsUp" aria-label="Larger text">A+</button>
+            </div>
+        </div>
+
+        <div class="brand">
+            <div class="brand-ic"><i class="fas fa-heart-pulse"></i></div>
+            <span class="brand-tx">CareCompanion</span>
+        </div>
+        <h1 class="reg-title">Create Your Account</h1>
+        <p class="reg-sub">Let's set up your health profile in a few easy steps</p>
+
+        <div class="stepper" id="stepper">
+            <div class="step-dot active" data-s="0">1</div>
+            <div class="step-line" data-l="0"><div class="step-line-fill"></div></div>
+            <div class="step-dot" data-s="1">2</div>
+            <div class="step-line" data-l="1"><div class="step-line-fill"></div></div>
+            <div class="step-dot" data-s="2">3</div>
+            <div class="step-line" data-l="2"><div class="step-line-fill"></div></div>
+            <div class="step-dot" data-s="3">4</div>
+            <div class="step-line" data-l="3"><div class="step-line-fill"></div></div>
+            <div class="step-dot" data-s="4">5</div>
+        </div>
+
+        <div class="reg-card">
+            <div class="steps-wrap">
+
+                <!-- STEP 0: Personal Info -->
+                <div class="step-panel active" data-panel="0">
+                    <div class="step-heading"><i class="fas fa-user"></i> Personal Information</div>
+                    <div class="step-desc">Basic details about you</div>
+
+                    <div class="fg">
+                        <label class="fl" for="fullName">Full Name <span class="req">*</span></label>
+                        <div class="fi-wrap">
+                            <input type="text" class="fi" id="fullName" placeholder="e.g. Ram Sharma" autocomplete="name">
+                            <i class="fas fa-user fi-ic"></i>
+                        </div>
+                        <div class="fi-err" id="errName"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="email">Email Address <span class="req">*</span></label>
+                        <div class="fi-wrap">
+                            <input type="email" class="fi" id="email" placeholder="e.g. ram.sharma@email.com" autocomplete="email">
+                            <i class="fas fa-envelope fi-ic"></i>
+                            <span class="email-valid-ic" id="emailValidIc"></span>
+                        </div>
+                        <div class="fi-err" id="errEmail"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="fg">
+                            <label class="fl" for="age">Age <span class="req">*</span></label>
+                            <div class="fi-wrap">
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" class="fi" id="age" placeholder="e.g. 72" maxlength="3" autocomplete="off">
+                                <i class="fas fa-calendar fi-ic"></i>
+                            </div>
+                            <div class="fi-err" id="errAge"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                        <div class="fg">
+                            <label class="fl" for="phone">Phone Number <span class="req">*</span></label>
+                            <div class="fi-wrap">
+                                <input type="tel" class="fi" id="phone" placeholder="e.g. 9876543210" autocomplete="tel" maxlength="15">
+                                <i class="fas fa-phone fi-ic"></i>
+                            </div>
+                            <div class="fi-err" id="errPhone"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl">Gender <span class="req">*</span></label>
+                        <div class="opt-group" id="genderGrp">
+                            <button type="button" class="opt-btn" data-val="Male"><i class="fas fa-mars"></i> Male</button>
+                            <button type="button" class="opt-btn" data-val="Female"><i class="fas fa-venus"></i> Female</button>
+                            <button type="button" class="opt-btn" data-val="Other"><i class="fas fa-genderless"></i> Other</button>
+                        </div>
+                        <div class="fi-err" id="errGender"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl">Blood Group</label>
+                        <div class="opt-group" id="bloodGrp">
+                            <button type="button" class="opt-btn" data-val="A+">A+</button>
+                            <button type="button" class="opt-btn" data-val="A-">A-</button>
+                            <button type="button" class="opt-btn" data-val="B+">B+</button>
+                            <button type="button" class="opt-btn" data-val="B-">B-</button>
+                            <button type="button" class="opt-btn" data-val="O+">O+</button>
+                            <button type="button" class="opt-btn" data-val="O-">O-</button>
+                            <button type="button" class="opt-btn" data-val="AB+">AB+</button>
+                            <button type="button" class="opt-btn" data-val="AB-">AB-</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 1: Address & Emergency -->
+                <div class="step-panel" data-panel="1">
+                    <div class="step-heading"><i class="fas fa-location-dot"></i> Address & Emergency Contact</div>
+                    <div class="step-desc">Where you live and who to call in an emergency</div>
+
+                    <div class="fg">
+                        <label class="fl" for="address">Address <span class="req">*</span></label>
+                        <div class="fi-wrap">
+                            <textarea class="fi" id="address" placeholder="House no, Street, Area..." rows="2"></textarea>
+                            <i class="fas fa-house fi-ic" style="top:20px;transform:none;"></i>
+                        </div>
+                        <div class="fi-err" id="errAddr"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                        <div class="fg">
+                            <label class="fl" for="city">City <span class="req">*</span></label>
+                            <div class="fi-wrap">
+                                <input type="text" class="fi" id="city" placeholder="e.g. Kopargaon">
+                                <i class="fas fa-city fi-ic"></i>
+                            </div>
+                            <div class="fi-err" id="errCity"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                        </div>
+                        <div class="fg">
+                            <label class="fl" for="state">State</label>
+                            <div class="fi-wrap">
+                                <input type="text" class="fi" id="state" placeholder="e.g. Maharashtra" value="Maharashtra">
+                                <i class="fas fa-map fi-ic"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="height:1px;background:var(--border);margin:24px 0 20px;"></div>
+                    <div style="font-size:0.92rem;font-weight:800;color:var(--warn);margin-bottom:14px;display:flex;align-items:center;gap:6px;">
+                        <i class="fas fa-triangle-exclamation"></i> Emergency Contact Details
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="emName">Contact Person Name <span class="req">*</span></label>
+                        <div class="fi-wrap">
+                            <input type="text" class="fi" id="emName" placeholder="e.g. Priya Sharma">
+                            <i class="fas fa-user-shield fi-ic"></i>
+                        </div>
+                        <div class="fi-err" id="errEmName"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="emPhone">Contact Person Phone <span class="req">*</span></label>
+                        <div class="fi-wrap">
+                            <input type="tel" class="fi" id="emPhone" placeholder="e.g. 8765432109" maxlength="15">
+                            <i class="fas fa-phone-volume fi-ic"></i>
+                        </div>
+                        <div class="fi-err" id="errEmPhone"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="emRelation">Relationship</label>
+                        <div class="fi-wrap">
+                            <select class="fi" id="emRelation">
+                                <option value="Daughter">Daughter</option>
+                                <option value="Son">Son</option>
+                                <option value="Spouse">Spouse</option>
+                                <option value="Sibling">Sibling</option>
+                                <option value="Friend">Friend</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <i class="fas fa-people-arrows fi-ic"></i>
+                            <i class="fas fa-chevron-down sel-arrow"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Create Password -->
+                <div class="step-panel" data-panel="2">
+                    <div class="step-heading"><i class="fas fa-lock"></i> Create Your Password</div>
+                    <div class="step-desc">Choose a strong password to keep your account safe</div>
+
+                    <div class="fg">
+                        <label class="fl" for="password">Password <span class="req">*</span></label>
+                        <div class="fi-wrap pw-wrap">
+                            <input type="password" class="fi" id="password" placeholder="Enter your password" autocomplete="new-password" minlength="8">
+                            <i class="fas fa-lock fi-ic"></i>
+                            <button type="button" class="pw-toggle" id="pwToggle1" aria-label="Show password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="pw-clear" id="pwClear1" aria-label="Clear password">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="fi-err" id="errPw"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+
+                        <div class="pw-strength" id="pwStrength">
+                            <div class="pw-str-track">
+                                <div class="pw-str-fill" id="pwStrFill"></div>
+                            </div>
+                            <div class="pw-str-label">
+                                <span class="pw-str-text" id="pwStrText">Password strength</span>
+                                <span id="pwStrScore"></span>
+                            </div>
+                        </div>
+
+                        <div class="pw-reqs" id="pwReqs">
+                            <div class="pw-req" data-req="len">
+                                <i class="fas fa-check"></i>
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div class="pw-req" data-req="upper">
+                                <i class="fas fa-check"></i>
+                                <span>One uppercase letter</span>
+                            </div>
+                            <div class="pw-req" data-req="lower">
+                                <i class="fas fa-check"></i>
+                                <span>One lowercase letter</span>
+                            </div>
+                            <div class="pw-req" data-req="num">
+                                <i class="fas fa-check"></i>
+                                <span>One number</span>
+                            </div>
+                            <div class="pw-req" data-req="special">
+                                <i class="fas fa-check"></i>
+                                <span>One special character</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="confirmPw">Confirm Password <span class="req">*</span></label>
+                        <div class="fi-wrap pw-wrap">
+                            <input type="password" class="fi" id="confirmPw" placeholder="Re-enter your password" autocomplete="new-password" minlength="8">
+                            <i class="fas fa-lock fi-ic"></i>
+                            <button type="button" class="pw-toggle" id="pwToggle2" aria-label="Show confirm password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="pw-clear" id="pwClear2" aria-label="Clear confirm password">
+                                <i class="fas fa-xmark"></i>
+                            </button>
+                        </div>
+                        <div class="fi-err" id="errConfirmPw"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                    </div>
+
+                    <div style="padding:12px 16px;border-radius:12px;background:var(--med-lt);border:1px solid rgba(25,118,210,0.15);display:flex;align-items:flex-start;gap:10px;margin-top:4px;">
+                        <i class="fas fa-lightbulb" style="color:var(--med);margin-top:2px;flex-shrink:0;"></i>
+                        <p style="font-size:0.82rem;color:var(--med-dk);font-weight:600;line-height:1.5;">Tip: Use a mix of letters, numbers, and symbols. Avoid using your name or phone number in the password.</p>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Health Info -->
+                <div class="step-panel" data-panel="3">
+                    <div class="step-heading"><i class="fas fa-notes-medical"></i> Health Information</div>
+                    <div class="step-desc">Help us personalize your health assistant</div>
+
+                    <div class="fg">
+                        <label class="fl" for="condition">Primary Health Condition</label>
+                        <div class="fi-wrap">
+                            <select class="fi" id="condition">
+                                <option value="">Select if applicable</option>
+                                <option value="Diabetes Type 2">Diabetes Type 2</option>
+                                <option value="Hypertension">Hypertension (High BP)</option>
+                                <option value="Heart Disease">Heart Disease</option>
+                                <option value="Arthritis">Arthritis</option>
+                                <option value="Asthma/COPD">Asthma / COPD</option>
+                                <option value="Post-Surgery Recovery">Post-Surgery Recovery</option>
+                                <option value="None">None</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <i class="fas fa-stethoscope fi-ic"></i>
+                            <i class="fas fa-chevron-down sel-arrow"></i>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="allergies">Known Allergies</label>
+                        <div class="fi-wrap">
+                            <input type="text" class="fi" id="allergies" placeholder="e.g. Penicillin, Peanuts">
+                            <i class="fas fa-shield-virus fi-ic"></i>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="currentMeds">Current Medications (if any)</label>
+                        <div class="fi-wrap">
+                            <textarea class="fi" id="currentMeds" placeholder="List medicines you are already taking..." rows="3"></textarea>
+                            <i class="fas fa-pills fi-ic" style="top:18px;transform:none;"></i>
+                        </div>
+                    </div>
+
+                    <div class="fg">
+                        <label class="fl" for="notes">Additional Notes</label>
+                        <div class="fi-wrap">
+                            <textarea class="fi" id="notes" placeholder="Anything else your caregiver should know..." rows="2"></textarea>
+                            <i class="fas fa-pen fi-ic" style="top:18px;transform:none;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Review -->
+                <div class="step-panel" data-panel="4">
+                    <div class="step-heading"><i class="fas fa-clipboard-check"></i> Review & Confirm</div>
+                    <div class="step-desc">Please check your details before submitting</div>
+
+                    <div id="reviewContent"></div>
+
+                    <div style="margin-top:20px;padding:14px 16px;border-radius:12px;background:var(--med-lt);border:1px solid rgba(25,118,210,0.15);display:flex;align-items:flex-start;gap:10px;">
+                        <i class="fas fa-info-circle" style="color:var(--med);margin-top:2px;flex-shrink:0;"></i>
+                        <p style="font-size:0.84rem;color:var(--med-dk);font-weight:600;line-height:1.5;">By registering, you agree to let your assigned caregiver manage your medication schedules and receive your health data. You can change this anytime.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="nav-row">
+                <button type="button" class="btn-prev" id="prevBtn" style="display:none;"><i class="fas fa-arrow-left"></i> Back</button>
+                <button type="button" class="btn-next" id="nextBtn">Continue <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <p class="login-link">Already have an account? <a href="patient-login.html">Sign In</a></p>
+    </main>
+
+<script>
+var currentStep = 0;
+var totalSteps = 5;
+var formData = { gender: '', blood: '' };
+
+/* ECG Background */
+(function() {
+    var cv = document.getElementById('ecgCv');
+    var cx = cv.getContext('2d');
+    function rs() { cv.width = innerWidth; cv.height = innerHeight; }
+    rs();
+    addEventListener('resize', rs);
+    if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+    var off = 0;
+    var p = [0,0,0,0,0,-0.1,-0.05,0.05,0,0,-0.02,0.3,1.2,-0.8,0.1,0,0,-0.05,0.2,0.35,-0.1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    function draw() {
+        cx.clearRect(0, 0, cv.width, cv.height);
+        cx.strokeStyle = '#1976d2';
+        cx.lineWidth = 2;
+        cx.beginPath();
+        var my = cv.height / 2;
+        var s = 8;
+        var tl = Math.ceil(cv.width / s) + p.length;
+        for (var i = 0; i < tl; i++) {
+            var idx = ((i + Math.floor(off)) % p.length + p.length) % p.length;
+            var x = i * s;
+            var y = my + p[idx] * 80;
+            if (i === 0) cx.moveTo(x, y);
+            else cx.lineTo(x, y);
+        }
+        cx.stroke();
+        off += 0.15;
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* Font Size */
+document.getElementById('fsDn').addEventListener('click', function() { setFS(-1); });
+document.getElementById('fsUp').addEventListener('click', function() { setFS(1); });
+function setFS(d) {
+    var s = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fs')) || 1;
+    document.documentElement.style.setProperty('--fs', Math.max(0.8, Math.min(1.4, s + d * 0.1)));
+}
+
+/* Age Input — digits only */
+(function() {
+    var ageInput = document.getElementById('age');
+    ageInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        if (this.value.length > 3) this.value = this.value.slice(0, 3);
+    });
+    ageInput.addEventListener('paste', function(e) {
+        var d = (e.clipboardData || window.clipboardData).getData('text');
+        if (!/^\d*$/.test(d)) e.preventDefault();
+    });
+    ageInput.addEventListener('keypress', function(e) {
+        if (e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+    });
+})();
+
+/* Email Real-time Validation Indicator */
+(function() {
+    var emailInput = document.getElementById('email');
+    var validIc = document.getElementById('emailValidIc');
+    var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
+    emailInput.addEventListener('input', function() {
+        var val = this.value.trim();
+        validIc.classList.remove('show', 'ok', 'bad');
+
+        if (val.length === 0) return;
+
+        /* Force lowercase for display consistency */
+        /* Only validate format once we have enough characters to look like an email */
+        if (val.indexOf('@') > 0) {
+            if (emailRegex.test(val)) {
+                validIc.innerHTML = '<i class="fas fa-circle-check"></i>';
+                validIc.classList.add('show', 'ok');
+            } else {
+                validIc.innerHTML = '<i class="fas fa-circle-xmark"></i>';
+                validIc.classList.add('show', 'bad');
+            }
+        }
+
+        /* Clear error on typing */
+        hideErr('errEmail');
+    });
+})();
+
+/* Option Buttons */
+document.querySelectorAll('.opt-group').forEach(function(grp) {
+    grp.addEventListener('click', function(e) {
+        var btn = e.target.closest('.opt-btn');
+        if (!btn) return;
+        grp.querySelectorAll('.opt-btn').forEach(function(b) { b.classList.remove('sel'); });
+        btn.classList.add('sel');
+        if (grp.id === 'genderGrp') formData.gender = btn.dataset.val;
+        if (grp.id === 'bloodGrp') formData.blood = btn.dataset.val;
+        if (grp.id === 'genderGrp') hideErr('errGender');
+    });
+});
+
+/* Password Field Logic */
+(function() {
+    var pwInput = document.getElementById('password');
+    var confirmInput = document.getElementById('confirmPw');
+    var strengthBox = document.getElementById('pwStrength');
+    var strFill = document.getElementById('pwStrFill');
+    var strText = document.getElementById('pwStrText');
+    var strScore = document.getElementById('pwStrScore');
+    var reqItems = document.querySelectorAll('.pw-req');
+
+    document.getElementById('pwToggle1').addEventListener('click', function() {
+        togglePwVisibility(pwInput, this);
+    });
+    document.getElementById('pwToggle2').addEventListener('click', function() {
+        togglePwVisibility(confirmInput, this);
+    });
+
+    document.getElementById('pwClear1').addEventListener('click', function() {
+        pwInput.value = ''; pwInput.focus(); this.classList.remove('show'); updatePwStrength(''); hideErr('errPw');
+    });
+    document.getElementById('pwClear2').addEventListener('click', function() {
+        confirmInput.value = ''; confirmInput.focus(); this.classList.remove('show'); hideErr('errConfirmPw');
+    });
+
+    pwInput.addEventListener('input', function() {
+        document.getElementById('pwClear1').classList.toggle('show', this.value.length > 0);
+        updatePwStrength(this.value);
+        hideErr('errPw');
+        if (confirmInput.value.length > 0) {
+            if (this.value !== confirmInput.value) showErr('errConfirmPw', 'Passwords do not match');
+            else hideErr('errConfirmPw');
+        }
+    });
+
+    confirmInput.addEventListener('input', function() {
+        document.getElementById('pwClear2').classList.toggle('show', this.value.length > 0);
+        hideErr('errConfirmPw');
+        if (this.value.length > 0 && this.value !== pwInput.value) showErr('errConfirmPw', 'Passwords do not match');
+    });
+
+    function togglePwVisibility(input, btn) {
+        var isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+        btn.innerHTML = isPassword ? '<i class="fas fa-eye-slash"></i>' : '<i class="fas fa-eye"></i>';
+        btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        input.focus();
+    }
+
+    function updatePwStrength(pw) {
+        if (pw.length === 0) { strengthBox.classList.remove('show'); resetReqs(); return; }
+        strengthBox.classList.add('show');
+        var checks = {
+            len: pw.length >= 8,
+            upper: /[A-Z]/.test(pw),
+            lower: /[a-z]/.test(pw),
+            num: /[0-9]/.test(pw),
+            special: /[^A-Za-z0-9]/.test(pw)
+        };
+        var metCount = 0;
+        reqItems.forEach(function(item) {
+            var req = item.dataset.req;
+            var met = checks[req];
+            item.classList.toggle('met', met);
+            if (met) metCount++;
+        });
+        var score = 0;
+        if (checks.len) score++;
+        if (checks.upper) score++;
+        if (checks.lower) score++;
+        if (checks.num) score++;
+        if (checks.special) score++;
+        if (pw.length >= 12) score++;
+        var pct, color, label;
+        if (score <= 2) { pct = 25; color = '#d32f2f'; label = 'Weak'; }
+        else if (score <= 3) { pct = 50; color = '#ed6c02'; label = 'Fair'; }
+        else if (score <= 4) { pct = 75; color = '#f9a825'; label = 'Good'; }
+        else { pct = 100; color = '#2e7d32'; label = 'Strong'; }
+        strFill.style.width = pct + '%';
+        strFill.style.background = color;
+        strText.textContent = label;
+        strText.style.color = color;
+        strScore.textContent = score + '/6';
+        strScore.style.color = color;
+    }
+
+    function resetReqs() {
+        reqItems.forEach(function(item) { item.classList.remove('met'); });
+        strFill.style.width = '0%';
+    }
+})();
+
+/* Step Navigation */
+document.getElementById('nextBtn').addEventListener('click', goNext);
+document.getElementById('prevBtn').addEventListener('click', goPrev);
+
+function goNext() {
+    if (!validateStep(currentStep)) return;
+    if (currentStep === totalSteps - 1) { submitRegistration(); return; }
+    currentStep++;
+    showStep(currentStep, false);
+}
+
+function goPrev() {
+    if (currentStep <= 0) return;
+    currentStep--;
+    showStep(currentStep, true);
+}
+
+function showStep(idx, isBack) {
+    document.querySelectorAll('.step-panel').forEach(function(p) { p.classList.remove('active', 'slide-back'); });
+    var panel = document.querySelector('[data-panel="' + idx + '"]');
+    panel.classList.add('active');
+    if (isBack) panel.classList.add('slide-back');
+    if (idx === 4) buildReview();
+    document.querySelectorAll('.step-dot').forEach(function(d) {
+        var s = parseInt(d.dataset.s);
+        d.classList.remove('active', 'done');
+        if (s < idx) d.classList.add('done');
+        else if (s === idx) d.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach(function(l) {
+        var lIdx = parseInt(l.dataset.l);
+        l.classList.toggle('filled', lIdx < idx);
+    });
+    document.getElementById('prevBtn').style.display = idx === 0 ? 'none' : 'flex';
+    var nextBtn = document.getElementById('nextBtn');
+    if (idx === totalSteps - 1) nextBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Registration';
+    else nextBtn.innerHTML = 'Continue <i class="fas fa-arrow-right"></i>';
+    document.querySelector('.reg-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* Validation */
+function validateStep(idx) {
+    clearStepErrors(idx);
+    var ok = true;
+    var emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+
+    if (idx === 0) {
+        if (!gv('fullName')) { showErr('errName', 'Please enter your full name'); ok = false; }
+        var email = gv('email');
+        if (!email) { showErr('errEmail', 'Please enter your email address'); ok = false; }
+        else if (!emailRegex.test(email)) { showErr('errEmail', 'Please enter a valid email address'); ok = false; }
+        var age = gv('age');
+        if (!age) { showErr('errAge', 'Please enter your age'); ok = false; }
+        else if (parseInt(age) < 1 || parseInt(age) > 120) { showErr('errAge', 'Please enter a valid age (1-120)'); ok = false; }
+        if (!gv('phone') || gv('phone').length < 10) { showErr('errPhone', 'Please enter a valid phone number'); ok = false; }
+        if (!formData.gender) { showErr('errGender', 'Please select your gender'); ok = false; }
+    }
+
+    if (idx === 1) {
+        if (!gv('address')) { showErr('errAddr', 'Please enter your address'); ok = false; }
+        if (!gv('city')) { showErr('errCity', 'Please enter your city'); ok = false; }
+        if (!gv('emName')) { showErr('errEmName', 'Please enter emergency contact name'); ok = false; }
+        if (!gv('emPhone') || gv('emPhone').length < 10) { showErr('errEmPhone', 'Please enter a valid phone number'); ok = false; }
+    }
+
+    if (idx === 2) {
+        var pw = gv('password');
+        var cpw = gv('confirmPw');
+        if (!pw) { showErr('errPw', 'Please enter a password'); ok = false; }
+        else if (pw.length < 8) { showErr('errPw', 'Password must be at least 8 characters'); ok = false; }
+        else if (!/[A-Z]/.test(pw)) { showErr('errPw', 'Password must contain at least one uppercase letter'); ok = false; }
+        else if (!/[a-z]/.test(pw)) { showErr('errPw', 'Password must contain at least one lowercase letter'); ok = false; }
+        else if (!/[0-9]/.test(pw)) { showErr('errPw', 'Password must contain at least one number'); ok = false; }
+        else if (!/[^A-Za-z0-9]/.test(pw)) { showErr('errPw', 'Password must contain at least one special character'); ok = false; }
+        if (!cpw) { showErr('errConfirmPw', 'Please confirm your password'); ok = false; }
+        else if (pw && cpw !== pw) { showErr('errConfirmPw', 'Passwords do not match'); ok = false; }
+    }
+
+    if (!ok) playTone(250, 0.12, 'square');
+    return ok;
+}
+
+function clearStepErrors(idx) {
+    var errs = {
+        0: ['errName', 'errEmail', 'errAge', 'errPhone', 'errGender'],
+        1: ['errAddr', 'errCity', 'errEmName', 'errEmPhone'],
+        2: ['errPw', 'errConfirmPw'],
+        3: [],
+        4: []
+    };
+    (errs[idx] || []).forEach(hideErr);
+}
+
+/* Review Builder */
+function buildReview() {
+    var pw = gv('password');
+    var maskedPw = pw ? '\u2022'.repeat(pw.length) : 'Not set';
+    var c = document.getElementById('reviewContent');
+    c.innerHTML =
+        reviewSection('Personal Info', [
+            ['Name', gv('fullName')],
+            ['Email', gv('email')],
+            ['Age', gv('age')],
+            ['Gender', formData.gender],
+            ['Phone', gv('phone')],
+            ['Blood Group', formData.blood || 'Not specified']
+        ]) +
+        reviewSection('Address & Emergency', [
+            ['Address', gv('address')],
+            ['City', gv('city') + (gv('state') ? ', ' + gv('state') : '')],
+            ['Emergency Contact', gv('emName') + ' (' + gv('emRelation') + ')'],
+            ['Contact Phone', gv('emPhone')]
+        ]) +
+        reviewSection('Security', [
+            ['Password', maskedPw]
+        ]) +
+        reviewSection('Health Info', [
+            ['Condition', gv('condition') || 'None specified'],
+            ['Allergies', gv('allergies') || 'None specified'],
+            ['Current Medications', gv('currentMeds') || 'None specified'],
+            ['Notes', gv('notes') || 'None']
+        ]);
+}
+
+function reviewSection(title, rows) {
+    var h = '<div class="review-section"><div class="review-title"><i class="fas fa-circle"></i> ' + title + '</div>';
+    rows.forEach(function(r) {
+        h += '<div class="review-row"><span class="review-label">' + r[0] + '</span><span class="review-val">' + (r[1] || '—') + '</span></div>';
+    });
+    return h + '</div>';
+}
+
+/* Submit */
+function submitRegistration() {
+    var btn = document.getElementById('nextBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner" style="animation:spin 0.8s linear infinite;"></i> Submitting...';
+    console.log('[REGISTER]', {
+        name: gv('fullName'),
+        email: gv('email'),
+        age: gv('age'),
+        gender: formData.gender,
+        phone: gv('phone'),
+        blood: formData.blood,
+        address: gv('address'),
+        city: gv('city'),
+        state: gv('state'),
+        emergency: { name: gv('emName'), phone: gv('emPhone'), relation: gv('emRelation') },
+        password: gv('password'),
+        condition: gv('condition'),
+        allergies: gv('allergies'),
+        currentMeds: gv('currentMeds'),
+        notes: gv('notes'),
+        timestamp: new Date().toISOString()
+    });
+    setTimeout(function() {
+        document.getElementById('successOv').classList.add('vis');
+        playTone(523, 0.1);
+        setTimeout(function() { playTone(659, 0.1); }, 100);
+        setTimeout(function() { playTone(784, 0.15); }, 200);
+        btn.disabled = false;
+    }, 1800);
+}
+
+/* Helpers */
+function gv(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function showErr(id, msg) { var el = document.getElementById(id); el.querySelector('span').textContent = msg; el.classList.add('show'); }
+function hideErr(id) { document.getElementById(id).classList.remove('show'); }
+
+function toast(msg, type) {
+    var rack = document.getElementById('toasts');
+    var el = document.createElement('div');
+    el.className = 'tst' + (type ? ' ' + type : '');
+    var ico, clr;
+    if (type === 'ok') { ico = 'fa-circle-check'; clr = 'var(--ok)'; }
+    else if (type === 'err') { ico = 'fa-triangle-exclamation'; clr = 'var(--danger)'; }
+    else if (type === 'wrn') { ico = 'fa-exclamation-circle'; clr = 'var(--warn)'; }
+    else { ico = 'fa-circle-info'; clr = 'var(--med)'; }
+    el.innerHTML = '<i class="fas ' + ico + '" style="color:' + clr + ';font-size:1rem;flex-shrink:0;margin-top:2px;"></i><span>' + msg + '</span>';
+    rack.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.remove(); }, 4200);
+}
+
+function playTone(freq, dur, type) {
+    try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.value = Math.max(20, freq);
+        gain.gain.value = 0.06;
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + dur);
+    } catch(e) {}
+}
+</script>
+</body>
+</html>

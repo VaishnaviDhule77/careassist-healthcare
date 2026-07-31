@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareCompanion — Assistive Healthcare Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --med:#1976d2;--med-dk:#1565c0;--med-lt:#e3f2fd;
+            --bg:#f4f6f8;--card:#ffffff;--txt:#111111;--sub:#444444;--muted:#666666;
+            --ok:#2e7d32;--ok-bg:#e8f5e9;--danger:#d32f2f;--danger-bg:#ffebee;
+            --warn:#ed6c02;--warn-bg:#fff3e0;--border:#dce1e6;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden}
+        *:focus-visible{outline:3px solid var(--med);outline-offset:3px}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#bbb;border-radius:3px}
+
+        /* ===== NAV ===== */
+        .nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);transition:box-shadow .3s}
+        .nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,0.06)}
+        .nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between}
+        .nav-brand{display:flex;align-items:center;gap:10px}
+        .nav-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--med),var(--med-dk));display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(25,118,210,0.25)}
+        .nav-icon i{color:#fff;font-size:1.1rem}
+        .nav-name{font-weight:900;font-size:1.15rem;letter-spacing:-.01em}
+        .nav-links{display:flex;align-items:center;gap:28px;font-size:.9rem;font-weight:700}
+        .nav-links a{color:var(--muted);text-decoration:none;transition:color .2s}
+        .nav-links a:hover{color:var(--med)}
+
+        /* ===== HERO + SLIDER ===== */
+        .hero{position:relative;height:560px;overflow:hidden;background:#0d1b2a}
+        .slider-track{display:flex;height:100%;transition:transform .7s cubic-bezier(.4,0,.2,1)}
+        .slide{min-width:100%;height:100%;position:relative;background-size:cover;background-position:center}
+        .slide::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(13,27,42,0.88) 0%,rgba(13,27,42,0.5) 50%,rgba(13,27,42,0.3) 100%)}
+        .slide-content{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;padding:40px}
+        .slide-inner{max-width:600px;color:#fff}
+        .slide-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:20px;background:rgba(25,118,210,0.3);border:1px solid rgba(255,255,255,0.15);font-size:.78rem;font-weight:700;margin-bottom:18px;backdrop-filter:blur(4px)}
+        .slide-badge i{color:#64b5f6}
+        .slide-h1{font-size:2.6rem;font-weight:900;line-height:1.15;margin-bottom:14px}
+        .slide-p{font-size:1.05rem;color:rgba(255,255,255,0.75);line-height:1.55;margin-bottom:24px;font-weight:600}
+        .slide-btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:14px;border:none;background:var(--med);color:#fff;font-family:'Nunito';font-size:1rem;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .25s;box-shadow:0 4px 16px rgba(25,118,210,0.3);text-decoration:none}
+        .slide-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(25,118,210,0.35)}
+
+        /* Slider Controls */
+        .slider-arrows{position:absolute;top:50%;left:0;right:0;z-index:10;transform:translateY(-50%);display:flex;justify-content:space-between;padding:0 16px;pointer-events:none}
+        .slider-arrow{width:48px;height:48px;border-radius:50%;border:none;background:rgba(255,255,255,0.12);backdrop-filter:blur(6px);color:#fff;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;pointer-events:auto}
+        .slider-arrow:hover{background:rgba(255,255,255,0.25);transform:scale(1.08)}
+        .slider-dots{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);z-index:10;display:flex;gap:8px}
+        .slider-dot{width:10px;height:10px;border-radius:50%;border:2px solid rgba(255,255,255,0.4);background:transparent;cursor:pointer;transition:all .3s}
+        .slider-dot.active{background:#fff;border-color:#fff;transform:scale(1.15)}
+
+        /* Stats bar on slider */
+        .hero-stats{position:absolute;bottom:0;left:0;right:0;z-index:10;background:rgba(255,255,255,0.08);backdrop-filter:blur(8px);border-top:1px solid rgba(255,255,255,0.08);padding:16px 24px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap}
+        .hero-stat{text-align:center;color:#fff}
+        .hero-stat-num{font-size:1.5rem;font-weight:900;line-height:1}
+        .hero-stat-lbl{font-size:.72rem;color:rgba(255,255,255,0.55);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+        /* ===== LOGIN CARDS SECTION ===== */
+        .login-section{max-width:1000px;margin:-60px auto 0;padding:0 24px;position:relative;z-index:20}
+        .login-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+        .login-card{background:var(--card);border-radius:20px;border:1px solid var(--border);padding:36px 32px;box-shadow:0 8px 40px rgba(0,0,0,0.06);transition:transform .3s,box-shadow .3s;position:relative;overflow:hidden}
+        .login-card:hover{transform:translateY(-6px);box-shadow:0 16px 56px rgba(0,0,0,0.1)}
+        .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+        .login-card.patient::before{background:linear-gradient(90deg,var(--ok),#66bb6a)}
+        .login-card.admin::before{background:linear-gradient(90deg,var(--med),var(--med-dk))}
+        .login-card-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:18px}
+        .login-card.patient .login-card-icon{background:var(--ok-bg);color:var(--ok)}
+        .login-card.admin .login-card-icon{background:var(--med-lt);color:var(--med)}
+        .login-card h2{font-size:1.4rem;font-weight:900;margin-bottom:6px}
+        .login-card .desc{color:var(--muted);font-size:.92rem;font-weight:600;line-height:1.5;margin-bottom:24px}
+        .login-features{list-style:none;margin-bottom:26px;display:flex;flex-direction:column;gap:10px}
+        .login-features li{display:flex;align-items:center;gap:10px;font-size:.88rem;font-weight:700;color:var(--sub)}
+        .login-features li i{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.72rem;flex-shrink:0}
+        .login-card.patient .login-features li i{background:var(--ok-bg);color:var(--ok)}
+        .login-card.admin .login-features li i{background:var(--med-lt);color:var(--med)}
+        .login-card-btn{width:100%;padding:16px;border-radius:14px;border:none;font-family:'Nunito';font-size:1.05rem;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .15s,box-shadow .25s;position:relative;overflow:hidden}
+        .login-card-btn:hover{transform:translateY(-2px)}
+        .login-card-btn:active{transform:translateY(0) scale(.98)}
+        .login-card-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transform:translateX(-100%)}
+        .login-card-btn:hover::after{animation:btnShm .7s ease}
+        @keyframes btnShm{to{transform:translateX(100%)}}
+        .patient .login-card-btn{background:var(--ok);color:#fff;box-shadow:0 4px 16px rgba(46,125,50,0.3)}
+        .patient .login-card-btn:hover{box-shadow:0 8px 28px rgba(46,125,50,0.35)}
+        .admin .login-card-btn{background:var(--med);color:#fff;box-shadow:0 4px 16px rgba(25,118,210,0.3)}
+        .admin .login-card-btn:hover{box-shadow:0 8px 28px rgba(25,118,210,0.35)}
+
+        /* ===== FEATURES SECTION ===== */
+        .features{max-width:1000px;margin:60px auto 0;padding:0 24px}
+        .section-header{text-align:center;margin-bottom:40px}
+        .section-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:var(--med-lt);color:var(--med);font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+        .section-title{font-size:2rem;font-weight:900;line-height:1.2}
+        .section-sub{color:var(--muted);font-size:.95rem;font-weight:600;margin-top:8px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.5}
+        .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+        .feat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px 22px;transition:transform .3s,box-shadow .3s}
+        .feat-card:hover{transform:translateY(-4px);box-shadow:0 8px 28px rgba(0,0,0,0.07)}
+        .feat-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;margin-bottom:16px}
+        .feat-card h3{font-size:1.02rem;font-weight:900;margin-bottom:6px}
+        .feat-card p{font-size:.85rem;color:var(--muted);font-weight:600;line-height:1.5}
+
+        /* ===== HOW IT WORKS ===== */
+        .how-section{max-width:1000px;margin:60px auto 0;padding:0 24px}
+        .steps-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;position:relative}
+        .steps-row::before{content:'';position:absolute;top:36px;left:60px;right:60px;height:2px;background:var(--border);z-index:0}
+        .step-item{text-align:center;position:relative;z-index:1}
+        .step-num{width:72px;height:72px;border-radius:50%;background:var(--card);border:3px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:1.5rem;font-weight:900;color:var(--med);transition:all .3s}
+        .step-item:hover .step-num{border-color:var(--med);background:var(--med-lt);transform:scale(1.08)}
+        .step-item h4{font-size:.92rem;font-weight:900;margin-bottom:4px}
+        .step-item p{font-size:.8rem;color:var(--muted);font-weight:600;line-height:1.4;padding:0 4px}
+
+        /* ===== FOOTER ===== */
+        footer{margin-top:60px;background:#111111;color:rgba(255,255,255,0.7);padding:40px 24px}
+        .footer-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+        .footer-brand{display:flex;align-items:center;gap:8px;color:#fff;font-weight:800;font-size:.95rem}
+        .footer-brand i{color:var(--med)}
+        .footer-text{font-size:.82rem;font-weight:600;text-align:center;flex:1;min-width:200px}
+
+        /* ===== TOAST ===== */
+        .toast-rack{position:fixed;top:80px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px}
+        .tst{pointer-events:auto;background:var(--card);border-radius:12px;padding:14px 18px;box-shadow:0 8px 28px rgba(0,0,0,0.12);display:flex;align-items:flex-start;gap:10px;font-size:.88rem;line-height:1.4;border-left:4px solid var(--med);animation:tIn .4s ease,tOut .4s ease 3s forwards}
+        .tst.ok{border-left-color:var(--ok)}
+        @keyframes tIn{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes tOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(50px)}}
+
+        /* ===== FLOATING SHAPES ===== */
+        .float-shape{position:absolute;border-radius:50%;pointer-events:none;opacity:.06;z-index:0}
+
+        /* ===== SCROLL REVEAL ===== */
+        .reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+        .reveal.visible{opacity:1;transform:translateY(0)}
+
+        @media(max-width:900px){
+            .login-grid{grid-template-columns:1fr;max-width:480px;margin-left:auto;margin-right:auto}
+            .login-section{margin-top:-30px}
+            .features-grid{grid-template-columns:1fr 1fr}
+            .steps-row{grid-template-columns:1fr 1fr;gap:24px}
+            .steps-row::before{display:none}
+            .slide-h1{font-size:2rem}
+            .hero{height:440px}
+            .hero-stats{gap:24px}
+        }
+        @media(max-width:600px){
+            .features-grid{grid-template-columns:1fr}
+            .steps-row{grid-template-columns:1fr}
+            .nav-links{display:none}
+            .slide-h1{font-size:1.65rem}
+            .slide-p{font-size:.9rem}
+            .hero{height:400px}
+            .hero-stats{gap:16px;padding:12px 16px}
+            .hero-stat-num{font-size:1.2rem}
+            .login-card{padding:28px 22px}
+        }
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    </style>
+</head>
+<body>
+
+    <div class="toast-rack" id="toasts" aria-live="polite"></div>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="nav" id="mainNav">
+        <div class="nav-inner">
+            <div class="nav-brand">
+                <div class="nav-icon"><i class="fas fa-heart-pulse"></i></div>
+                <span class="nav-name">CareCompanion</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features-section">Features</a>
+                <a href="#how-section">How It Works</a>
+                <a href="#" id="navPatientLink">Patient Login</a>
+                <a href="#" id="navAdminLink" style="color:var(--med);font-weight:800;">Caregiver Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ===== HERO SLIDER ===== -->
+    <section class="hero" aria-label="Feature showcase">
+        <div class="slider-track" id="sliderTrack">
+            <!-- Slide 1 -->
+            <div class="slide" style="background-image:url('https://picsum.photos/seed/healthcare-elderly/1400/700.jpg')">
+                <div class="slide-content">
+                    <div class="slide-inner">
+                        <div class="slide-badge"><i class="fas fa-trophy"></i> Innovation Sprint 2026</div>
+                        <h1 class="slide-h1">Assistive Healthcare for Elderly and Disabled</h1>
+                        <p class="slide-p">A complete digital companion that simplifies daily health management through voice control, multilingual support, and real-time caregiver connectivity.</p>
+                        <a href="#login-section" class="slide-btn"><i class="fas fa-arrow-down"></i> Get Started</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 2 -->
+            <div class="slide" style="background-image:url('https://picsum.photos/seed/medical-pills-care/1400/700.jpg')">
+                <div class="slide-content">
+                    <div class="slide-inner">
+                        <div class="slide-badge"><i class="fas fa-pills"></i> Smart Medication</div>
+                        <h1 class="slide-h1">Never Miss a Dose Again</h1>
+                        <p class="slide-p">Automated reminders, one-tap confirmations, and caregiver alerts ensure perfect medication adherence without any complexity.</p>
+                        <a href="patient-login.html" class="slide-btn"><i class="fas fa-user"></i> Patient Portal</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 3 -->
+            <div class="slide" style="background-image:url('https://picsum.photos/seed/doctor-dashboard-monitor/1400/700.jpg')">
+                <div class="slide-content">
+                    <div class="slide-inner">
+                        <div class="slide-badge"><i class="fas fa-shield-heart"></i> Caregiver Portal</div>
+                        <h1 class="slide-h1">Monitor. Manage. Respond.</h1>
+                        <p class="slide-p">Real-time dashboard for caregivers to track vitals, manage schedules, receive emergency alerts, and stay connected with patients remotely.</p>
+                        <a href="admin-login.html" class="slide-btn"><i class="fas fa-user-shield"></i> Caregiver Portal</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Slide 4 -->
+            <div class="slide" style="background-image:url('https://picsum.photos/seed/voice-assistant-speak/1400/700.jpg')">
+                <div class="slide-content">
+                    <div class="slide-inner">
+                        <div class="slide-badge"><i class="fas fa-language"></i> Multilingual Voice AI</div>
+                        <h1 class="slide-h1">Speak in Your Language</h1>
+                        <p class="slide-p">Hindi, Marathi, or English — our AI health assistant understands and responds in your preferred language with voice-first interaction.</p>
+                        <a href="#features-section" class="slide-btn"><i class="fas fa-microphone-lines"></i> Explore Features</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider Controls -->
+        <div class="slider-arrows">
+            <button class="slider-arrow" id="prevSlide" aria-label="Previous slide"><i class="fas fa-chevron-left"></i></button>
+            <button class="slider-arrow" id="nextSlide" aria-label="Next slide"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="slider-dots" id="sliderDots"></div>
+
+        <!-- Stats Bar -->
+        <div class="hero-stats">
+            <div class="hero-stat"><div class="hero-stat-num">4</div><div class="hero-stat-lbl">Team Members</div></div>
+            <div class="hero-stat"><div class="hero-stat-num">8hrs</div><div class="hero-stat-lbl">Build Sprint</div></div>
+            <div class="hero-stat"><div class="hero-stat-num">3</div><div class="hero-stat-lbl">Languages</div></div>
+            <div class="hero-stat"><div class="hero-stat-num">5+</div><div class="hero-stat-lbl">Key Features</div></div>
+        </div>
+    </section>
+
+    <!-- ===== LOGIN CARDS ===== -->
+    <section class="login-section" id="login-section">
+        <div class="login-grid">
+            <!-- Patient Card -->
+            <div class="login-card patient reveal">
+                <div class="login-card-icon"><i class="fas fa-user"></i></div>
+                <h2>Patient Portal</h2>
+                <p class="desc">Designed for elderly users and persons with disabilities. Large buttons, voice control, and multilingual support.</p>
+                <ul class="login-features">
+                    <li><i class="fas fa-check"></i> One-tap medication confirmation</li>
+                    <li><i class="fas fa-check"></i> Voice assistant in Hindi & Marathi</li>
+                    <li><i class="fas fa-check"></i> Emergency SOS with GPS location</li>
+                    <li><i class="fas fa-check"></i> Adjustable text size for low vision</li>
+                </ul>
+                <a href="./frontend/patient-login.html" class="login-card-btn">
+                    <i class="fas fa-right-to-bracket"></i> Sign In as Patient
+                </a>
+            </div>
+
+            <!-- Admin Card -->
+            <div class="login-card admin reveal">
+                <div class="login-card-icon"><i class="fas fa-user-shield"></i></div>
+                <h2>Caregiver Dashboard</h2>
+                <p class="desc">Professional monitoring portal for caregivers, doctors, and family members managing patient health remotely.</p>
+                <ul class="login-features">
+                    <li><i class="fas fa-check"></i> Real-time medication adherence tracking</li>
+                    <li><i class="fas fa-check"></i> Live vitals and health metrics</li>
+                    <li><i class="fas fa-check"></i> Emergency SOS alert notifications</li>
+                    <li><i class="fas fa-check"></i> Remote medication schedule management</li>
+                </ul>
+                <a href="./frontend/admin-login.html" class="login-card-btn">
+                    <i class="fas fa-right-to-bracket"></i> Sign In as Caregiver
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FEATURES ===== -->
+    <section class="features reveal" id="features-section">
+        <div class="section-header">
+            <div class="section-tag"><i class="fas fa-sparkles"></i> Key Features</div>
+            <h2 class="section-title">Built for Real-World Impact</h2>
+            <p class="section-sub">Every feature addresses a genuine accessibility barrier faced by elderly users and their caregivers.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--danger-bg);color:var(--danger)"><i class="fas fa-phone-volume"></i></div>
+                <h3>Emergency SOS</h3>
+                <p>One-tap button grabs GPS and instantly alerts all emergency contacts with live location on Google Maps.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-pills"></i></div>
+                <h3>Smart Medication</h3>
+                <p>Shows only the next pill to take. Large green button confirms. No complex schedules to read.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--med-lt);color:var(--med)"><i class="fas fa-microphone-lines"></i></div>
+                <h3>Voice Assistant</h3>
+                <p>Ask health questions by speaking. AI responds in your language and reads answers aloud.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--warn-bg);color:var(--warn)"><i class="fas fa-language"></i></div>
+                <h3>Multilingual</h3>
+                <p>Full UI, speech recognition, and text-to-speech in English, Hindi, and Marathi.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--med-lt);color:var(--med)"><i class="fas fa-universal-access"></i></div>
+                <h3>Zero-Input Modes</h3>
+                <p>Auto-scanning with switch control, sound triggers, and webcam gesture support for severe motor disabilities.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-ic" style="background:var(--ok-bg);color:var(--ok)"><i class="fas fa-chart-line"></i></div>
+                <h3>Caregiver Analytics</h3>
+                <p>Adherence rates, vitals history, missed dose flags, and complete activity logging in real-time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== HOW IT WORKS ===== -->
+    <section class="how-section reveal" id="how-section">
+        <div class="section-header">
+            <div class="section-tag"><i class="fas fa-route"></i> How It Works</div>
+            <h2 class="section-title">End-to-End Flow</h2>
+            <p class="section-sub">From patient action to caregiver awareness in seconds.</p>
+        </div>
+        <div class="steps-row">
+            <div class="step-item">
+                <div class="step-num">1</div>
+                <h4>Patient Acts</h4>
+                <p>Taps a button, speaks, or uses a switch to take medicine or trigger SOS</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">2</div>
+                <h4>App Processes</h4>
+                <p>Grabs GPS, logs the action, updates schedule, and queues notifications</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">3</div>
+                <h4>Caregiver Notified</h4>
+                <p>Dashboard updates in real-time. SOS triggers immediate alert with map link</p>
+            </div>
+            <div class="step-item">
+                <div class="step-num">4</div>
+                <h4>AI Assists</h4>
+                <p>Voice AI answers patient questions and summarizes symptoms for the doctor</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand"><i class="fas fa-heart-pulse"></i> CareCompanion</div>
+            <div class="footer-text">Innovation Sprint Hackathon 2026 — School of Engineering and Technology, Sanjivani University</div>
+            <div style="font-size:.82rem;font-weight:700;color:rgba(255,255,255,0.4)">PS-04: Assistive Healthcare for Elderly and Disabled</div>
+        </div>
+    </footer>
+
+<script>
+/* ==============================================
+   IMAGE SLIDER
+============================================== */
+var currentSlide = 0;
+var totalSlides = document.querySelectorAll('.slide').length;
+var track = document.getElementById('sliderTrack');
+var dotsContainer = document.getElementById('sliderDots');
+var autoSlideTimer = null;
+
+/* Create dots */
+for (var i = 0; i < totalSlides; i++) {
+    var dot = document.createElement('button');
+    dot.className = 'slider-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+    dot.dataset.index = i;
+    dot.addEventListener('click', function() { goToSlide(parseInt(this.dataset.index)); });
+    dotsContainer.appendChild(dot);
+}
+
+function goToSlide(idx) {
+    currentSlide = idx;
+    track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+    var dots = dotsContainer.querySelectorAll('.slider-dot');
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+    resetAutoSlide();
+}
+
+function nextSlideAction() { goToSlide((currentSlide + 1) % totalSlides); }
+function prevSlideAction() { goToSlide((currentSlide - 1 + totalSlides) % totalSlides); }
+
+document.getElementById('nextSlide').addEventListener('click', nextSlideAction);
+document.getElementById('prevSlide').addEventListener('click', prevSlideAction);
+
+/* Auto-advance every 5s */
+function resetAutoSlide() {
+    clearInterval(autoSlideTimer);
+    autoSlideTimer = setInterval(nextSlideAction, 5000);
+}
+resetAutoSlide();
+
+/* Pause on hover */
+var heroEl = document.querySelector('.hero');
+heroEl.addEventListener('mouseenter', function() { clearInterval(autoSlideTimer); });
+heroEl.addEventListener('mouseleave', resetAutoSlide);
+
+/* Touch/swipe support */
+var touchStartX = 0;
+heroEl.addEventListener('touchstart', function(e) { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+heroEl.addEventListener('touchend', function(e) {
+    var diff = touchStartX - e.changedTouches[0].screenX;
+    if (Math.abs(diff) > 50) { diff > 0 ? nextSlideAction() : prevSlideAction(); }
+}, { passive: true });
+
+/* Keyboard arrows when hero focused */
+heroEl.setAttribute('tabindex', '0');
+heroEl.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') nextSlideAction();
+    if (e.key === 'ArrowLeft') prevSlideAction();
+});
+
+/* ==============================================
+   NAV SCROLL EFFECT
+============================================== */
+var nav = document.getElementById('mainNav');
+window.addEventListener('scroll', function() {
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+}, { passive: true });
+
+/* ==============================================
+   SCROLL REVEAL
+============================================== */
+var revealEls = document.querySelectorAll('.reveal');
+var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.15 });
+
+revealEls.forEach(function(el) { revealObserver.observe(el); });
+
+/* ==============================================
+   SMOOTH SCROLL FOR NAV LINKS
+============================================== */
+document.querySelectorAll('a[href^="#"]').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        var href = this.getAttribute('href');
+        if (href.length > 1) {
+            var target = document.querySelector(href);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    });
+});
+
+/* Nav direct links to login pages */
+document.getElementById('navPatientLink').addEventListener('click', function(e) {
+    e.preventDefault(); window.location.href = 'patient-login.html';
+});
+document.getElementById('navAdminLink').addEventListener('click', function(e) {
+    e.preventDefault(); window.location.href = 'admin-login.html';
+});
+
+/* ==============================================
+   TOAST (for demo purposes)
+============================================== */
+function toast(msg, type) {
+    var rack = document.getElementById('toasts');
+    var el = document.createElement('div');
+    el.className = 'tst' + (type ? ' ' + type : '');
+    var ico = type === 'ok' ? 'fa-circle-check' : 'fa-circle-info';
+    var clr = type === 'ok' ? 'var(--ok)' : 'var(--med)';
+    el.innerHTML = '<i class="fas ' + ico + '" style="color:' + clr + ';font-size:1rem;flex-shrink:0;margin-top:1px;"></i><span>' + msg + '</span>';
+    rack.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.remove(); }, 3600);
+}
+
+/* Show a welcome toast after load */
+setTimeout(function() {
+    toast('Welcome to CareCompanion — choose your portal below', 'ok');
+}, 1200);
+</script>
+</body>
+</html>

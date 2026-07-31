@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>CareCompanion - Caregiver Dashboard</title>
+  
+  <!-- Fonts & Icons matching Member 1's setup -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <style>
+    :root {
+      --med: #1976d2;
+      --med-dk: #1565c0;
+      --med-lt: #e3f2fd;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --txt: #333333;
+      --sub: #666666;
+      --ok: #2e7d32;
+      --ok-bg: #e8f5e9;
+      --danger: #d32f2f;
+      --danger-bg: #ffebee;
+      --warn: #ed6c02;
+      --warn-bg: #fff3e0;
+      --border: #dce1e6;
+      --input-bg: #f8f9fb;
+      --fs: 1;
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: calc(17px * var(--fs));
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--med);
+      color: #ffffff;
+      padding: 20px 24px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.15);
+    }
+
+    .header-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .header-sub {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .active-dot {
+      color: #4caf50;
+    }
+
+    /* ALERTS SECTION */
+    .alerts-section {
+      margin-bottom: 24px;
+    }
+
+    .alert-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .alert-card.sos {
+      background: var(--danger-bg);
+      border-left: 6px solid var(--danger);
+    }
+
+    .alert-card.missed {
+      background: var(--warn-bg);
+      border-left: 6px solid var(--warn);
+    }
+
+    .alert-title-sos {
+      color: var(--danger);
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-title-missed {
+      color: var(--warn);
+      font-size: 1rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .alert-msg {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+
+    .alert-time {
+      color: var(--sub);
+      font-size: 0.8rem;
+    }
+
+    .alert-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-location {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-dismiss {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--sub);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    /* GRID LAYOUTS */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      color: var(--sub);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card-value {
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin: 8px 0 4px 0;
+    }
+
+    .card-sub {
+      font-size: 0.8rem;
+      color: var(--sub);
+    }
+
+    .text-green { color: var(--ok); }
+    .text-blue { color: var(--med); }
+    .text-amber { color: var(--warn); }
+    .text-cyan { color: #0288d1; }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* MEDICATION LOG */
+    .med-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .med-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: var(--input-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .med-name {
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+
+    .med-info {
+      font-size: 0.8rem;
+      color: var(--sub);
+      margin-top: 2px;
+    }
+
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .status-taken { background: var(--ok-bg); color: var(--ok); }
+    .status-missed { background: var(--danger-bg); color: var(--danger); }
+    .status-pending { background: var(--warn-bg); color: var(--warn); }
+
+    /* FORM STYLES */
+    .med-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .label {
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: var(--txt);
+    }
+
+    .input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .input:focus {
+      border-color: var(--med);
+      background: #fff;
+    }
+
+    .submit-btn {
+      background: var(--med);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .submit-btn:hover {
+      background: var(--med-dk);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- HEADER BAR -->
+    <header class="header">
+      <div>
+        <h1 class="header-title">CareCompanion Caregiver Portal</h1>
+        <p class="header-sub">Monitoring: <strong>Grandma Mary</strong> (78 yrs)</p>
+      </div>
+      <div class="badge">
+        <span class="active-dot"><i class="fa-solid fa-circle"></i></span> Live Connection
+      </div>
+    </header>
+
+    <!-- 1. EMERGENCY & CRITICAL ALERTS PANEL -->
+    <section id="alerts-section" class="alerts-section">
+      <!-- Dynamic alerts load here -->
+    </section>
+
+    <!-- 2. HEALTH STATUS OVERVIEW CARDS -->
+    <section class="grid-4">
+      <div class="card">
+        <span class="card-title"><i class="fa-solid fa-pills"></i> Adherence Rate</span>
+        <div class="card-value text-green">85%</div>
+        <span class="card-sub">1 dose missed this week</span>
+      </div>
+
+      <div class="card">
+        <span class="card-title"><i class="fa-solid fa-heart-pulse"></i> Blood Pressure</span>
+        <div class="card-value text-blue">122/80 mmHg</div>
+        <span class="card-sub">Normal range</span>
+      </div>
+
+      <div class="card">
+        <span class="card-title"><i class="fa-solid fa-stethoscope"></i> Heart Rate</span>
+        <div class="card-value text-amber">72 bpm</div>
+        <span class="card-sub">Resting rate</span>
+      </div>
+
+      <div class="card">
+        <span class="card-title"><i class="fa-solid fa-lungs"></i> Oxygen Level</span>
+        <div class="card-value text-cyan">98%</div>
+        <span class="card-sub">Updated 2h ago</span>
+      </div>
+    </section>
+
+    <!-- MAIN TWO-COLUMN LAYOUT -->
+    <div class="grid-2">
+      
+      <!-- 3. TODAY'S MEDICATION ACTIVITY LOG -->
+      <section class="card">
+        <h2 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Medication Schedule & Log</h2>
+        <div id="medication-list" class="med-list">
+          <!-- Medication rows load here -->
+        </div>
+      </section>
+
+      <!-- 4. ADD NEW MEDICATION FORM -->
+      <section class="card">
+        <h2 class="section-title"><i class="fa-solid fa-square-plus"></i> Add New Medication Schedule</h2>
+        <form id="add-med-form" class="med-form">
+          <div class="form-group">
+            <label class="label" for="med-name">Medicine Name & Dosage</label>
+            <input type="text" id="med-name" placeholder="e.g., Metformin 500mg" required class="input">
+          </div>
+
+          <div class="form-group">
+            <label class="label" for="med-time">Reminder Time</label>
+            <input type="time" id="med-time" required class="input">
+          </div>
+
+          <div class="form-group">
+            <label class="label" for="med-instructions">Instructions / Notes</label>
+            <input type="text" id="med-instructions" placeholder="e.g., Take after meals" class="input">
+          </div>
+
+          <button type="submit" class="submit-btn">Save to Patient's App</button>
+        </form>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // INITIAL MOCK DATA
+    let alerts = [
+      {
+        id: 1,
+        type: "SOS",
+        message: "Emergency SOS triggered from mobile app!",
+        time: "10:15 AM Today",
+        lat: "18.5204",
+        lng: "73.8567",
+      },
+      {
+        id: 2,
+        type: "MISSED_MED",
+        message: "Missed Afternoon Sugar Medicine (Metformin)",
+        time: "1:30 PM Yesterday",
+      }
+    ];
+
+    let medications = [
+      { id: 1, name: "Amlodipine 5mg", time: "08:00 AM", instructions: "1 Tablet after breakfast", status: "Taken" },
+      { id: 2, name: "Metformin 500mg", time: "01:00 PM", instructions: "1 Tablet after lunch", status: "Missed" },
+      { id: 3, name: "Atorvastatin 10mg", time: "08:00 PM", instructions: "1 Tablet before bed", status: "Pending" }
+    ];
+
+    // RENDER ALERTS
+    function renderAlerts() {
+      const alertsContainer = document.getElementById("alerts-section");
+      alertsContainer.innerHTML = "";
+
+      alerts.forEach(alert => {
+        const isSOS = alert.type === "SOS";
+        const alertDiv = document.createElement("div");
+        alertDiv.className = `alert-card ${isSOS ? 'sos' : 'missed'}`;
+
+        alertDiv.innerHTML = `
+          <div>
+            <h3 class="${isSOS ? 'alert-title-sos' : 'alert-title-missed'}">
+              <i class="fa-solid ${isSOS ? 'fa-triangle-exclamation' : 'fa-bell'}"></i>
+              ${isSOS ? 'EMERGENCY SOS ALERT' : 'MEDICATION MISSED'}
+            </h3>
+            <p class="alert-msg">${alert.message}</p>
+            <span class="alert-time">Time: ${alert.time}</span>
+          </div>
+          <div class="alert-actions">
+            ${alert.lat ? `<button class="btn-location" onclick="openLocation('${alert.lat}', '${alert.lng}')"><i class="fa-solid fa-location-dot"></i> View Location</button>` : ''}
+            <button class="btn-dismiss" onclick="dismissAlert(${alert.id})">Dismiss</button>
+          </div>
+        `;
+
+        alertsContainer.appendChild(alertDiv);
+      });
+    }
+
+    // RENDER MEDICATIONS
+    function renderMedications() {
+      const medListContainer = document.getElementById("medication-list");
+      medListContainer.innerHTML = "";
+
+      medications.forEach(med => {
+        const medDiv = document.createElement("div");
+        medDiv.className = "med-row";
+
+        let statusClass = "status-pending";
+        if (med.status === "Taken") statusClass = "status-taken";
+        if (med.status === "Missed") statusClass = "status-missed";
+
+        medDiv.innerHTML = `
+          <div>
+            <div class="med-name">${med.name}</div>
+            <div class="med-info">${med.time} • ${med.instructions}</div>
+          </div>
+          <div>
+            <span class="status-badge ${statusClass}">${med.status}</span>
+          </div>
+        `;
+
+        medListContainer.appendChild(medDiv);
+      });
+    }
+
+    function openLocation(lat, lng) {
+      window.open(`https://maps.google.com/?q=${lat},${lng}`, '_blank');
+    }
+
+    function dismissAlert(id) {
+      alerts = alerts.filter(a => a.id !== id);
+      renderAlerts();
+    }
+
+    document.getElementById("add-med-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("med-name").value;
+      const time = document.getElementById("med-time").value;
+      const instructions = document.getElementById("med-instructions").value || "As prescribed";
+
+      if (!name || !time) return;
+
+      const newMed = {
+        id: Date.now(),
+        name: name,
+        time: time,
+        instructions: instructions,
+        status: "Pending"
+      };
+
+      medications.push(newMed);
+      renderMedications();
+
+      this.reset();
+    });
+
+    // Initial Load
+    renderAlerts();
+    renderMedications();
+  </script>
+</body>
+</html>

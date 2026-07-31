@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CareCompanion — Patient Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --med:#1976d2;--med-dk:#1565c0;--med-lt:#e3f2fd;
+            --bg:#f4f6f8;--card:#ffffff;--txt:#333333;--sub:#666666;
+            --ok:#2e7d32;--ok-bg:#e8f5e9;--danger:#d32f2f;
+            --border:#dce1e6;--input-bg:#f8f9fb;
+        }
+        *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        html{font-size:18px}
+        body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+        *:focus-visible{outline:3px solid var(--med);outline-offset:3px}
+
+        /* ECG Background */
+        #ecgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.12}
+        .bg-orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0}
+        .orb1{width:350px;height:350px;background:var(--med);opacity:.06;top:-100px;left:-80px;animation:ob1 16s ease-in-out infinite}
+        .orb2{width:280px;height:280px;background:#42a5f5;opacity:.05;bottom:-80px;right:-60px;animation:ob2 20s ease-in-out infinite}
+        @keyframes ob1{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,40px)}}
+        @keyframes ob2{0%,100%{transform:translate(0,0)}50%{transform:translate(25px,-25px)}}
+
+        .login-shell{position:relative;z-index:1;width:100%;max-width:460px;padding:20px}
+
+        .login-card{background:var(--card);border-radius:24px;padding:40px 36px;box-shadow:0 4px 30px rgba(0,0,0,.06),0 1px 4px rgba(0,0,0,.04);border:1px solid var(--border);position:relative;overflow:hidden}
+        .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--med),#42a5f5,var(--ok))}
+
+        .brand{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
+        .brand-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--med),#42a5f5);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(25,118,210,.25)}
+        .brand-icon i{color:#fff;font-size:1.5rem}
+        .brand-text{font-size:1.35rem;font-weight:900;color:var(--txt);letter-spacing:-.01em}
+
+        .greeting{text-align:center;margin-bottom:32px}
+        .greeting h1{font-size:1.5rem;font-weight:900;color:var(--txt);margin-bottom:6px;line-height:1.2}
+        .greeting p{font-size:1rem;color:var(--sub);font-weight:600}
+
+        .field{margin-bottom:22px;position:relative}
+        .field-icon{position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--sub);font-size:1.15rem;pointer-events:none;transition:color .25s;z-index:2}
+        .field-input{width:100%;padding:18px 18px 18px 54px;border:2px solid var(--border);border-radius:16px;font-family:'Nunito';font-size:1.1rem;font-weight:600;color:var(--txt);background:var(--input-bg);transition:border-color .25s,box-shadow .25s,background .25s}
+        .field-input:focus{border-color:var(--med);box-shadow:0 0 0 4px rgba(25,118,210,.1);background:#fff;outline:none}
+        .field-input:focus ~ .field-icon{color:var(--med)}
+        .field-input::placeholder{color:#aaa;font-weight:600}
+        .field-error{color:var(--danger);font-size:.85rem;font-weight:700;margin-top:6px;display:none;align-items:center;gap:5px}
+        .field-error.show{display:flex}
+        .toggle-pw{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--sub);font-size:1.1rem;cursor:pointer;padding:4px;transition:color .2s}
+        .toggle-pw:hover{color:var(--med)}
+
+        .options{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:10px}
+        .remember{display:flex;align-items:center;gap:10px;cursor:pointer}
+        .remember input{display:none}
+        .remember-box{width:24px;height:24px;border-radius:7px;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--input-bg);flex-shrink:0}
+        .remember-box i{font-size:.7rem;color:#fff;opacity:0;transform:scale(0);transition:all .2s}
+        .remember input:checked ~ .remember-box{background:var(--med);border-color:var(--med)}
+        .remember input:checked ~ .remember-box i{opacity:1;transform:scale(1)}
+        .remember span{font-size:.95rem;font-weight:700;color:var(--sub)}
+        .forgot{font-size:.95rem;font-weight:700;color:var(--med);text-decoration:none;transition:color .2s}
+        .forgot:hover{color:var(--med-dk);text-decoration:underline}
+
+        .login-btn{width:100%;padding:20px;border:none;border-radius:16px;background:linear-gradient(135deg,var(--med),var(--med-dk));color:#fff;font-family:'Nunito';font-size:1.25rem;font-weight:900;cursor:pointer;transition:transform .15s,box-shadow .25s;box-shadow:0 4px 16px rgba(25,118,210,.3);display:flex;align-items:center;justify-content:center;gap:10px;position:relative;overflow:hidden}
+        .login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(25,118,210,.35)}
+        .login-btn:active{transform:translateY(0) scale(.98)}
+        .login-btn.loading{pointer-events:none;opacity:.85}
+        .login-btn .spinner{display:none;width:22px;height:22px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+        .login-btn.loading .spinner{display:block}
+        .login-btn.loading .btn-text{display:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .login-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);transform:translateX(-100%)}
+        .login-btn:hover::after{animation:btnShm .8s ease}
+        @keyframes btnShm{to{transform:translateX(100%)}}
+
+        /* Register button */
+        .register-btn{width:100%;padding:16px;border-radius:14px;border:2px solid var(--border);background:transparent;color:var(--txt);font-family:'Nunito';font-size:1.05rem;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;margin-top:12px}
+        .register-btn:hover{border-color:var(--med);background:var(--med-lt);color:var(--med);transform:translateY(-1px)}
+        .register-btn:active{transform:translateY(0) scale(.98)}
+        .register-btn i{font-size:.95rem}
+
+        .help-row{text-align:center;margin-top:20px;display:flex;flex-direction:column;gap:12px}
+        .help-link{font-size:.92rem;color:var(--sub);font-weight:600;text-decoration:none;transition:color .2s;display:inline-flex;align-items:center;gap:6px}
+        .help-link:hover{color:var(--med)}
+        .call-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:12px;border:2px solid var(--ok);background:var(--ok-bg);color:var(--ok);font-family:'Nunito';font-size:1rem;font-weight:800;cursor:pointer;transition:all .2s;text-decoration:none;justify-content:center}
+        .call-btn:hover{background:var(--ok);color:#fff;transform:translateY(-1px)}
+
+        .footer-text{text-align:center;margin-top:20px;font-size:.82rem;color:#aaa;font-weight:600}
+
+        /* Toast */
+        .toast-rack{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px}
+        .tst{pointer-events:auto;background:var(--card);border-radius:12px;padding:14px 18px;box-shadow:0 8px 28px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:10px;font-size:.9rem;line-height:1.4;border-left:4px solid var(--med);animation:tIn .4s ease,tOut .4s ease 3.5s forwards}
+        .tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--danger)}
+        @keyframes tIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes tOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60px)}}
+
+        /* Success overlay */
+        .success-overlay{position:fixed;inset:0;z-index:500;background:rgba(255,255,255,.96);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .5s}
+        .success-overlay.vis{opacity:1;pointer-events:auto}
+        .success-icon{width:100px;height:100px;border-radius:50%;background:var(--ok-bg);display:flex;align-items:center;justify-content:center;margin-bottom:20px;transform:scale(0);transition:transform .5s cubic-bezier(.34,1.56,.64,1) .2s}
+        .success-overlay.vis .success-icon{transform:scale(1)}
+        .success-icon i{font-size:2.5rem;color:var(--ok)}
+        .success-text{font-size:1.4rem;font-weight:900;color:var(--txt);opacity:0;transform:translateY(10px);transition:all .4s ease .5s}
+        .success-overlay.vis .success-text{opacity:1;transform:translateY(0)}
+        .success-sub{font-size:1rem;color:var(--sub);margin-top:6px;opacity:0;transition:opacity .4s ease .7s}
+        .success-overlay.vis .success-sub{opacity:1}
+
+        @media(max-width:500px){
+            html{font-size:16px}
+            .login-card{padding:30px 24px;border-radius:20px}
+            .brand-icon{width:48px;height:48px;border-radius:14px}
+            .brand-icon i{font-size:1.3rem}
+        }
+        @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+    </style>
+</head>
+<body>
+
+    <canvas id="ecgCanvas" aria-hidden="true"></canvas>
+    <div class="bg-orb orb1" aria-hidden="true"></div>
+    <div class="bg-orb orb2" aria-hidden="true"></div>
+
+    <div class="toast-rack" id="toasts" aria-live="polite"></div>
+
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-icon"><i class="fas fa-check"></i></div>
+        <div class="success-text">Welcome Back!</div>
+        <div class="success-sub">Redirecting to your health dashboard...</div>
+    </div>
+
+    <main class="login-shell">
+        <div class="login-card">
+            <!-- Brand -->
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-heart-pulse"></i></div>
+                <span class="brand-text">CareCompanion</span>
+            </div>
+
+            <!-- Greeting -->
+            <div class="greeting">
+                <h1>Welcome Back</h1>
+                <p>Sign in to access your health assistant</p>
+            </div>
+
+            <!-- Form -->
+            <form id="loginForm" novalidate autocomplete="on">
+                <div class="field">
+                    <input type="text" class="field-input" id="userId" placeholder="Your ID or Name" autocomplete="username" aria-label="User ID or Name" required>
+                    <i class="fas fa-user field-icon"></i>
+                    <div class="field-error" id="errUser"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                </div>
+
+                <div class="field">
+                    <input type="password" class="field-input" id="userPw" placeholder="Your Password" autocomplete="current-password" aria-label="Password" required style="padding-right:54px">
+                    <i class="fas fa-lock field-icon"></i>
+                    <button type="button" class="toggle-pw" id="togglePw" aria-label="Show password"><i class="fas fa-eye"></i></button>
+                    <div class="field-error" id="errPw"><i class="fas fa-exclamation-circle"></i> <span></span></div>
+                </div>
+
+                <div class="options">
+                    <label class="remember">
+                        <input type="checkbox" id="rememberMe" checked>
+                        <div class="remember-box"><i class="fas fa-check"></i></div>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot" id="forgotLink">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <span class="btn-text"><i class="fas fa-right-to-bracket"></i> Sign In</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+
+            <!-- Register button — links to patient-register.html -->
+            <a href="patient-register.html" class="register-btn">
+                <i class="fas fa-user-plus"></i> Not Registered? Create Account
+            </a>
+
+            <!-- Help -->
+            <div class="help-row">
+                <a href="#" class="help-link" id="helpLink"><i class="fas fa-question-circle"></i> Need help signing in?</a>
+                <a href="tel:+911234567890" class="call-btn"><i class="fas fa-phone"></i> Call Caregiver for Help</a>
+            </div>
+        </div>
+
+        <p class="footer-text">CareCompanion v1.0 — Innovation Sprint 2026</p>
+    </main>
+
+<script>
+/* ---- Backend API Configuration ---- */
+const API_BASE_URL = 'http://localhost:5000/api';
+
+/* ---- ECG Background Animation ---- */
+(function(){
+    const cv = document.getElementById('ecgCanvas'), cx = cv.getContext('2d');
+    function rs(){ cv.width = innerWidth; cv.height = innerHeight; }
+    rs(); addEventListener('resize', rs);
+    if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+
+    let offset = 0;
+    const ecgPattern = [0,0,0,0,0,-.1,-.05,.05,0,0,-.02,.3,1.2,-.8,.1,0,0,-.05,.2,.35,-.1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+
+    function draw(){
+        cx.clearRect(0,0,cv.width,cv.height);
+        cx.strokeStyle = '#1976d2';
+        cx.lineWidth = 2;
+        cx.beginPath();
+        const midY = cv.height / 2;
+        const step = 8;
+        const totalLen = Math.ceil(cv.width / step) + ecgPattern.length;
+        for(let i = 0; i < totalLen; i++){
+            const idx = ((i + Math.floor(offset)) % ecgPattern.length + ecgPattern.length) % ecgPattern.length;
+            const x = i * step;
+            const y = midY + ecgPattern[idx] * 80;
+            i === 0 ? cx.moveTo(x, y) : cx.lineTo(x, y);
+        }
+        cx.stroke();
+        offset += 0.15;
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ---- Form Logic ---- */
+const form = document.getElementById('loginForm');
+const userId = document.getElementById('userId');
+const userPw = document.getElementById('userPw');
+const loginBtn = document.getElementById('loginBtn');
+const togglePw = document.getElementById('togglePw');
+
+/* Password toggle */
+togglePw.addEventListener('click', () => {
+    const isPw = userPw.type === 'password';
+    userPw.type = isPw ? 'text' : 'password';
+    togglePw.querySelector('i').className = isPw ? 'fas fa-eye-slash' : 'fas fa-eye';
+});
+
+/* Clear errors on input */
+userId.addEventListener('input', () => hideErr('errUser'));
+userPw.addEventListener('input', () => hideErr('errPw'));
+
+/* Forgot password */
+document.getElementById('forgotLink').addEventListener('click', e => {
+    e.preventDefault();
+    toast('Contact your caregiver to reset your password', 'ok');
+});
+
+/* Help link */
+document.getElementById('helpLink').addEventListener('click', e => {
+    e.preventDefault();
+    toast('Ask your caregiver for your login ID and password', 'ok');
+});
+
+/* Submit via Fetch API */
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let valid = true;
+
+    if(!userId.value.trim()){
+        showErr('errUser', 'Please enter your ID or name'); valid = false;
+    }
+    if(!userPw.value.trim()){
+        showErr('errPw', 'Please enter your password'); valid = false;
+    } else if(userPw.value.trim().length < 4){
+        showErr('errPw', 'Password is too short'); valid = false;
+    }
+
+    if(!valid) return;
+
+    loginBtn.classList.add('loading');
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/patients/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: userId.value.trim(),
+                password: userPw.value.trim()
+            })
+        });
+
+        const data = await response.json();
+        loginBtn.classList.remove('loading');
+
+        if (response.ok && data.success) {
+            // Save user details to LocalStorage for session persistence
+            localStorage.setItem('currentUser', JSON.stringify(data.patient));
+
+            document.getElementById('successOverlay').classList.add('vis');
+            
+            /* Redirect to patient-dashboard.html after success overlay */
+            setTimeout(() => {
+                window.location.href = 'patient-dashboard.html';
+            }, 1000);
+        } else {
+            toast(data.message || 'Login failed. Invalid credentials.', 'err');
+        }
+    } catch (error) {
+        loginBtn.classList.remove('loading');
+        toast('Unable to connect to backend server. Make sure node server is running.', 'err');
+        console.error('Login error:', error);
+    }
+});
+
+function showErr(id, msg){
+    const el = document.getElementById(id);
+    el.querySelector('span').textContent = msg;
+    el.classList.add('show');
+}
+function hideErr(id){
+    document.getElementById(id).classList.remove('show');
+}
+
+/* ---- Toast ---- */
+function toast(msg, type){
+    const rack = document.getElementById('toasts');
+    const el = document.createElement('div');
+    el.className = 'tst' + (type ? ' '+type : '');
+    const ico = type === 'ok' ? 'fa-circle-check' : type === 'err' ? 'fa-triangle-exclamation' : 'fa-circle-info';
+    const clr = type === 'ok' ? 'var(--ok)' : type === 'err' ? 'var(--danger)' : 'var(--med)';
+    el.innerHTML = '<i class="fas '+ico+'" style="color:'+clr+';font-size:1.1rem;flex-shrink:0;margin-top:1px"></i><span>'+msg+'</span>';
+    rack.appendChild(el);
+    setTimeout(()=>{ if(el.parentNode) el.remove(); }, 4200);
+}
+</script>
+</body>
+</html>
