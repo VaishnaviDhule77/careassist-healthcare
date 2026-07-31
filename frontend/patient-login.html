@@ -90,8 +90,7 @@
 
         /* Toast */
         .toast-rack{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:380px}
-        .tst{pointer-events:auto;background:var(--card);border-radius:12px;padding:14px 18px;box-shadow:0 8px 28px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:10px;font-size:.9rem;line-height:1.4;border-left:4px solid var(--med);animation:tIn .4s ease,tOut .4s ease 3.5s forwards}
-        .tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--danger)}
+.tst{pointer-events:auto;background:var(--card);border-radius:12px;padding:14px 18px;box-shadow:0 8px 28px rgba(0,0,0,.1);display:flex;align-items:flex-start;gap:10px;font-size:.9rem;line-height:1.4;border-left:4px solid var(--med);animation:tIn .4s ease,tOut .4s ease 3.5s forwards}        .tst.ok{border-left-color:var(--ok)}.tst.err{border-left-color:var(--danger)}
         @keyframes tIn{from{opacity:0;transform:translateX(60px)}to{opacity:1;transform:translateX(0)}}
         @keyframes tOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(60px)}}
 
@@ -190,7 +189,8 @@
 
 <script>
 /* ---- Backend API Configuration ---- */
-const API_BASE_URL = 'http://localhost:5000/api';
+// Automatically detects origin (localhost vs Render deployment URL)
+const API_BASE_URL = `${window.location.origin}/api`;
 
 /* ---- ECG Background Animation ---- */
 (function(){
