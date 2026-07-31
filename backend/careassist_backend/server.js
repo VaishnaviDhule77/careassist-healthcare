@@ -26,8 +26,14 @@ app.use(
 );
 app.use(express.json());
 
-// Serve Static Frontend Files from root /frontend directory
+// Serve static assets from both the /frontend folder and the root directory
 app.use(express.static(path.join(__dirname, "../../frontend")));
+app.use(express.static(path.join(__dirname, "../../")));
+
+// Root Route: Serves index.html from repository root
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../index.html"));
+});
 
 // Primary API Routes
 app.use("/api/patients", patientRoutes);
@@ -43,11 +49,6 @@ app.use("/api/patient", patientRoutes);
 app.post("/api/auth/login", (req, res, next) => {
   req.url = "/login";
   patientRoutes(req, res, next);
-});
-
-// Root Route: Serves Frontend UI
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../frontend/index.html"));
 });
 
 // 404 Handler for Unmatched Routes
