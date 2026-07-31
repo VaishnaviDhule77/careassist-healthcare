@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 require("dotenv").config();
 
 // Route Imports
@@ -18,20 +19,15 @@ const app = express();
 // Middleware
 app.use(
   cors({
-    origin: "*", // Allows requests from any origin (e.g., Live Server on port 5500/5501)
+    origin: "*", // Allows requests from any origin
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json());
 
-// Root Health Check Route
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "CareAssist Healthcare Backend is running",
-  });
-});
+// Serve Static Frontend Files from root /frontend directory
+app.use(express.static(path.join(__dirname, "../../frontend")));
 
 // Primary API Routes
 app.use("/api/patients", patientRoutes);
@@ -40,14 +36,18 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/health", healthRoutes);
 
-// Alias Route for Singular "/api/patient" (Fixes common route mismatches)
+// Alias Route for Singular "/api/patient"
 app.use("/api/patient", patientRoutes);
 
-// Optional: Direct Auth/Login Route (if not already handled inside patientRoutes)
+// Direct Auth/Login Route
 app.post("/api/auth/login", (req, res, next) => {
-  // Pass to patient routes if patientRoutes handles /login
   req.url = "/login";
   patientRoutes(req, res, next);
+});
+
+// Root Route: Serves Frontend UI
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../../frontend/index.html"));
 });
 
 // 404 Handler for Unmatched Routes
